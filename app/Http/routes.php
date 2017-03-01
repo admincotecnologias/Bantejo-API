@@ -1,0 +1,227 @@
+<?php
+use Illuminate\Http\Request;
+/*
+|--------------------------------------------------------------------------
+| Application Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register all of the routes for an application.
+| It is a breeze. Simply tell Lumen the URIs it should respond to
+| and give it the Closure to call when that URI is requested.
+|
+ /**
+ * Routes for resource api_auth
+ */
+ $app->get('/', 'ClientsController@returnPdf');
+ $app->group(['prefix' => 'Auth'], function() use ($app) {
+     $app->post('LogIn', 'Api_authsController@LogIn');
+     $app->get('LogOut','Api_authsController@LogOut');
+    });
+    $app->group(['prefix' => 'Roles','middleware'=>'Api'], function() use ($app) {
+     $app->get('/', 'Api_authsController@checkAuth');
+    });
+    /**
+ * Routes for resource User
+ */
+ $app->group(['prefix' => 'Usuarios','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'UserController@all');
+     $app->post('add','UserController@add');
+     $app->get('show/{id}', 'UserController@show');
+     $app->put('update/{id}', 'UserController@update');
+     $app->delete('delete/{id}', 'UserController@delete');
+     $app->get('report/{id}', 'UserController@report');
+    });
+/**
+ * Routes for resource Permission
+ */
+ $app->group(['prefix' => 'Permisos','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'PermissionsController@all');
+     $app->post('add','PermissionsController@add');
+     $app->get('show/{id}', 'PermissionsController@show');
+     $app->put('update/{id}', 'PermissionsController@update');
+     $app->delete('delete/{id}', 'PermissionsController@delete');
+     $app->get('report/{id}', 'PermissionsController@report');
+    });
+/**
+ * Routes for resource Page
+ */
+ $app->group(['prefix' => 'Paginas','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'PagesController@all');
+     $app->post('add','PagesController@add');
+     $app->get('show/{id}', 'PagesController@show');
+     $app->put('update/{id}', 'PagesController@update');
+     $app->delete('delete/{id}', 'PagesController@delete');
+     $app->get('report/{id}', 'PagesController@report');
+    });
+
+/**
+ * Routes for resource occupation
+ */
+ $app->group(['prefix' => 'Puestos','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'OccupationsController@all');
+     $app->post('add','OccupationsController@add');
+     $app->get('show/{id}', 'OccupationsController@show');
+     $app->put('update/{id}', 'OccupationsController@update');
+     $app->delete('delete/{id}', 'OccupationsController@delete');
+     $app->get('report/{id}', 'OccupationsController@report');
+    });
+
+/**
+ * Routes for resource employee
+ */
+  $app->group(['prefix' => 'Empleados','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'EmployeesController@all');
+     $app->post('add','EmployeesController@add');
+     $app->get('show/{id}', 'EmployeesController@show');
+     $app->put('update/{id}', 'EmployeesController@update');
+     $app->delete('delete/{id}', 'EmployeesController@delete');
+     $app->get('report/{id}', 'EmployeesController@report');
+    });
+
+/**
+ * Routes for resource banks
+ */
+  $app->group(['prefix' => 'Bancos','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'BanksController@all');
+     $app->post('add','BanksController@add');
+     $app->get('show/{id}', 'BanksController@show');
+     $app->put('update/{id}', 'BanksController@update');
+     $app->delete('delete/{id}', 'BanksController@delete');
+     $app->get('report/{id}', 'BanksController@report');
+    });
+
+/**
+ * Routes for resource clients
+ */
+ $app->group(['prefix' => 'Clientes','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'ClientsController@all');
+     $app->post('add','ClientsController@add');
+     $app->get('show/{id}', 'ClientsController@show');
+     $app->put('update/{id}', 'ClientsController@update');
+     $app->delete('delete/{id}', 'ClientsController@delete');
+     $app->get('report/{id}', 'ClientsController@report');
+    });
+
+/**
+ * Routes for resource providers
+ */
+  $app->group(['prefix' => 'Proveedores','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'ProvidersController@all');
+     $app->post('add','ProvidersController@add');
+     $app->get('show/{id}', 'ProvidersController@show');
+     $app->put('update/{id}', 'ProvidersController@update');
+     $app->delete('delete/{id}', 'ProvidersController@delete');
+     $app->get('report/{id}', 'ProvidersController@report');
+    });
+
+/**
+ * Routes for resource client-banks
+ */
+ $app->group(['prefix' => 'BancosClientes','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'ClientBanksController@all');
+     $app->post('add','ClientBanksController@add');
+     $app->get('show/{id}', 'ClientBanksController@show');
+     $app->put('update/{id}', 'ClientBanksController@update');
+     $app->delete('delete/{id}', 'ClientBanksController@delete');
+     $app->get('report/{id}', 'ClientBanksController@report');
+    });
+
+/**
+ * Routes for resource client-shareholders
+ */
+ $app->group(['prefix' => 'AccionistasClientes','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'ClientShareholdersController@all');
+     $app->post('add','ClientShareholdersController@add');
+     $app->get('show/{id}', 'ClientShareholdersController@show');
+     $app->put('update/{id}', 'ClientShareholdersController@update');
+     $app->delete('delete/{id}', 'ClientShareholdersController@delete');
+     $app->get('report/{id}', 'ClientShareholdersController@report');
+    });
+
+/**
+ * Routes for resource provider-shareholders
+ */
+$app->get('provider-shareholders', 'ProviderShareholdersController@all');
+$app->get('provider-shareholders/{id}', 'ProviderShareholdersController@get');
+$app->post('provider-shareholders', 'ProviderShareholdersController@add');
+$app->put('provider-shareholders/{id}', 'ProviderShareholdersController@put');
+$app->delete('provider-shareholders/{id}', 'ProviderShareholdersController@remove');
+
+/**
+ * Routes for resource applications
+ */
+
+ $app->group(['prefix' => 'Solicitudes','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'ApplicationsController@all');
+     $app->post('add','ApplicationsController@add');
+     $app->get('show/{id}', 'ApplicationsController@show');
+     $app->put('update/{id}', 'ApplicationsController@update');
+     $app->delete('delete/{id}', 'ApplicationsController@delete');
+     $app->get('report/{id}', 'ApplicationsController@report');
+    });
+
+/**
+ * Routes for resource creditaids
+ */
+
+ $app->group(['prefix' => 'AvalCredito','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'CreditaidsController@all');
+     $app->post('add','CreditaidsController@add');
+     $app->get('show/{id}', 'CreditaidsController@show');
+     $app->put('update/{id}', 'CreditaidsController@update');
+     $app->delete('delete/{id}', 'CreditaidsController@delete');
+     $app->get('report/{id}', 'CreditaidsController@report');
+    });
+
+
+/**
+ * Routes for resource files
+ */
+  $app->group(['prefix' => 'FilesApplication','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'FilesController@all');
+     $app->post('add','FilesController@add');
+     $app->get('show/{id}', 'FilesController@ReturnFile');
+     $app->put('update/{id}', 'FilesController@update');
+     $app->delete('delete/{id}', 'FilesController@delete');
+     $app->get('report/{id}', 'FilesController@report');
+    });
+
+/**
+ * Routes for resource files-clients
+ */
+ $app->group(['prefix' => 'FilesClient','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'FilesClientsController@all');
+     $app->post('add','FilesClientsController@add');
+     $app->get('show/{id}', 'FilesClientsController@ReturnFile');
+     $app->put('update/{id}', 'FilesClientsController@update');
+     $app->delete('delete/{id}', 'FilesClientsController@delete');
+     $app->get('report/{id}', 'FilesClientsController@report');
+    });
+
+/**
+ * Routes for resource managers
+ */
+  $app->group(['prefix' => 'Managers','middleware'=>'Api'], function() use ($app) {
+     $app->get('all', 'ManagerclientsController@all');
+     $app->post('add','ManagerclientsController@add');
+     $app->get('show/{id}', 'ManagerclientsController@show');
+     $app->delete('delete/{id}', 'ManagerclientsController@delete');
+    });
+
+/**
+ * Routes for resource managerclients
+ */
+$app->get('managerclients', 'ManagerclientsController@all');
+$app->get('managerclients/{id}', 'ManagerclientsController@get');
+$app->post('managerclients', 'ManagerclientsController@add');
+$app->put('managerclients/{id}', 'ManagerclientsController@put');
+$app->delete('managerclients/{id}', 'ManagerclientsController@remove');
+
+/**
+ * Routes for resource credits
+ */
+$app->get('credits', 'CreditsController@all');
+$app->get('credits/{id}', 'CreditsController@get');
+$app->post('credits', 'CreditsController@add');
+$app->put('credits/{id}', 'CreditsController@put');
+$app->delete('credits/{id}', 'CreditsController@remove');
