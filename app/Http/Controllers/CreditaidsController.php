@@ -36,11 +36,7 @@ class CreditaidsController extends Controller {
         if ( $data->has('typeguarantee') )
         {
             if($data->input('typeguarantee')=='Moral'){
-                $validator = Validator::make($data->all(), [
-                    'idapplication' => 'required|integer',
-                    'typeguarantee'=> 'required|max:255',
-                    'idguarantee'=> 'required|integer', 
-                    ]);
+                $validator = Validator::make($data->all(), App\Creditaid::$rules['moral']['create']);
                     if ($validator->fails()) {
                     return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
                     }
@@ -53,27 +49,7 @@ class CreditaidsController extends Controller {
                         return response()->json(['error'=>false,'message'=>'aval agregado correctamente.','id'=>$creditaid->id]);
                     }
             }else{
-                $validator = Validator::make($data->all(), [
-                    'idapplication' => 'required|integer',
-                    'name'=> 'required|max:255',
-                    'lastname'=> 'required|max:255',
-                    'rfc'=> 'required|max:13',
-                    'curp'=> 'required|max:255',
-                    'birthday'=> 'required|date',
-                    'country'=> 'required|max:255',
-                    'nacionality'=> 'required|max:255',
-                    'email'=> 'required|email|max:255',
-                    'fiel'=> 'nullable|max:255',
-                    'address'=> 'required|max:255',
-                    'phone'=> 'required|max:255',
-                    'maritalstatus'=> 'required|max:255',
-                    'regimen'=> 'nullable|max:255',
-                    'relationship'=> 'required|max:255',
-                    'companyjob'=> 'required|max:255',
-                    'phonejob'=> 'required|max:255',
-                    'occupation'=> 'required|max:255',
-                    'oldwork'=> 'required|date'            
-                ]);
+                $validator = Validator::make($data->all(), App\Creditaid::$rules['fisica']['create']);
                 if ($validator->fails()) {
                     return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
                 }

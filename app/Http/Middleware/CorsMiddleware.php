@@ -105,7 +105,7 @@ class CorsMiddleware {
         else {
             $response = $next($request);
         }
-        $this->setCorsHeaders($request, $response);   
+        $this->setCorsHeaders($request, $response);
         return $response;
     }
 

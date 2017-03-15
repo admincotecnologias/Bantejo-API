@@ -10,5 +10,24 @@ class Application extends Model {
 
 	protected $dates = ['deleted_at',];
 
-
+    public static $rules = [
+        'create'=>[
+            'amountrequest' => 'required|numeric',
+            'applicationdate'=> 'required|date',
+            'place'=> 'required|max:255',
+            'creditterm'=> 'required|numeric',
+            'projectname'=> 'required|max:255',
+            'status'=> 'required|max:255',
+            'idclient'=> 'required|integer',
+        ],
+        'update'=>[
+            'amountrequest' => 'numeric',
+            'applicationdate'=> 'date',
+            'place'=> 'max:255',
+            'creditterm'=> 'numeric',
+            'projectname'=> 'max:255',
+            'status'=> 'max:255',
+            'idclient'=> 'integer',
+        ]
+    ];
 }

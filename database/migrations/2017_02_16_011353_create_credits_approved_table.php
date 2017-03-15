@@ -12,13 +12,14 @@ class CreateCreditsApprovedTable extends Migration
             $table->increments('id');
             // Schema declaration
             // Schema declaration
+            $table->integer('application')->unsigned()->nullable();
             $table->integer('type')->unsigned()->nullable(); //Tipo segun los definidos en la tabla de tipos
-            $table->double('amount',15,15); //monto inicial del credito
+            $table->double('amount'); //monto inicial del credito
             $table->date('start_date');  // Fecha de inicio del Credito
             $table->integer('term'); // No. de meses del credito
-            $table->double('interest',15,15); // % de interes anual convertido a decimal
+            $table->double('interest'); // % de interes anual convertido a decimal
             $table->double('iva')->default(16/100); // iva actual
-            $table->double('interest_arrear',15,15)->default(0); // Intereses moratorio
+            $table->double('interest_arrear')->default(0); // Intereses moratorio
             $table->integer('grace_days')->default(31); // dias de periodo de gracia
             $table->string('currency')->default('MXN'); // tipo de cambio MXN/USD
             // Constraints declaration
@@ -26,6 +27,7 @@ class CreateCreditsApprovedTable extends Migration
             $table->softDeletes();
 
             $table->foreign('type')->references('id')->on('credits_Available')->onDelete('set null');
+            $table->foreign('application')->references('id')->on('applications')->onDelete('set null');
         });
     }
 

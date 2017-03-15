@@ -49,39 +49,12 @@ class ClientsController extends Controller {
     } 
     public function add(Request $data)
     {       
-        $validator = Validator::make($data->all(), [
-            'businessname' => 'required|max:255',
-			'employeenumber' => 'integer',
-			'rfc' => 'required|max:255',
-			'fiel' => 'max:255',
-			'email' => 'required|max:255|email',
-			'businesscategory' => 'required|max:255',
-			'constitutiondate' => 'required|date',
-			'address' => 'required|max:255',
-			'colony' => 'required|max:255',
-			'postalcode' => 'required|integer',
-			'city' => 'required|max:255',
-			'state' => 'required|max:255',
-			'phone' => 'required|max:20',
-        ]);
+        $validator = Validator::make($data->all(), App\Client::$rules['create']);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
         else{  
-            $client = new App\Client;
-            $client->businessname = $data['businessname'];
-			$client->employeenumber = $data['employeenumber'];
-			$client->rfc = $data['rfc'];
-			$client->fiel = $data['fiel'];
-			$client->email = $data['email'];
-			$client->businesscategory = $data['businesscategory'];
-			$client->constitutiondate = Carbon::parse($data['constitutiondate']);
-			$client->address = $data['address'];
-			$client->colony = $data['colony'];
-			$client->postalcode = $data['postalcode'];
-			$client->city = $data['city'];
-			$client->state = $data['state'];
-			$client->phone = $data['phone'];
+            $client = App\Client::create($data->all());
             $client->save();            
             return response()->json(['error'=>false,'message'=>'cliente agregado correctamente.','id'=>$client->id]);
         }
@@ -103,21 +76,7 @@ class ClientsController extends Controller {
     public function update(Request $data,$id)
     {
         # code...
-        $validator = Validator::make($data->all(), [
-            'businessname' => 'max:255',
-			'employeenumber' => 'integer',
-			'rfc' => 'max:255',
-			'fiel' => 'max:255',
-			'email' => 'max:255|email',
-			'businesscategory' => 'max:255',
-			'constitutiondate' => 'date',
-			'address' => 'max:255',
-			'colony' => 'max:255',
-			'postalcode' => 'integer',
-			'city' => 'max:255',
-			'state' => 'max:255',
-			'phone' => 'integer',
-        ]);
+        $validator = Validator::make($data->all(), App\Client::$rules['update']);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
@@ -125,58 +84,7 @@ class ClientsController extends Controller {
         if(!$client->isEmpty()){
             try {
 				$client = App\Client::where('id',$id)->find($id); 
-                if ( $data->has('businessname') )
-                {
-                    $client->businessname = $data['businessname'];
-                }
-				if ( $data->has('employeenumber') )
-                {
-                    $client->employeenumber = $data['employeenumber'];
-                }
-				if ( $data->has('rfc') )
-                {
-                    $client->rfc = $data['rfc'];
-                }
-				if ( $data->has('fiel') )
-                {
-                    $client->fiel = $data['fiel'];
-                }
-				if ( $data->has('email') )
-                {
-                    $client->email = $data['email'];
-                }
-				if ( $data->has('businesscategory') )
-                {
-                    $client->businesscategory = $data['businesscategory'];
-                }
-				if ( $data->has('constitutiondate') )
-                {
-                    $client->constitutiondate = Carbon::parse($data['constitutiondate']);
-                }
-				if ( $data->has('address') )
-                {
-                    $client->address = $data['address'];
-                }
-				if ( $data->has('colony') )
-                {
-                    $client->colony = $data['colony'];
-                }
-				if ( $data->has('postalcode') )
-                {
-                    $client->postalcode = $data['postalcode'];
-                }
-				if ( $data->has('city') )
-                {
-                    $client->city = $data['city'];
-                }
-				if ( $data->has('state') )
-                {
-                    $client->state = $data['state'];
-                }
-				if ( $data->has('phone') )
-                {
-                    $client->phone = $data['phone'];
-                }                         
+                $client->fill($data->all());
                 $client->save();
             
                 return response()->json(['error'=>false,'message'=>'cliente editado correctamente.']);

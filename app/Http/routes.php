@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
  /**
  * Routes for resource api_auth
  */
- $app->get('/', 'ClientsController@returnPdf');
+ $app->post('/', 'CreditsController@addCreditType');
  $app->group(['prefix' => 'Auth'], function() use ($app) {
      $app->post('LogIn', 'Api_authsController@LogIn');
      $app->get('LogOut','Api_authsController@LogOut');
@@ -220,8 +220,11 @@ $app->delete('managerclients/{id}', 'ManagerclientsController@remove');
 /**
  * Routes for resource credits
  */
-$app->get('credits', 'CreditsController@all');
-$app->get('credits/{id}', 'CreditsController@get');
-$app->post('credits', 'CreditsController@add');
-$app->put('credits/{id}', 'CreditsController@put');
-$app->delete('credits/{id}', 'CreditsController@remove');
+$app->group(['prefix' => 'Credits','middleware'=>'Api'], function() use ($app) {
+    $app->get('/', 'CreditsController@all');
+    $app->get('credits/{id}', 'CreditsController@get');
+    $app->post('add', 'CreditsController@addCreditApproved');
+    $app->put('credits/{id}', 'CreditsController@put');
+    $app->delete('credits/{id}', 'CreditsController@remove');
+});
+

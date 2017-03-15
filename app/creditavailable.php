@@ -12,6 +12,7 @@ class creditavailable extends Model {
 
 	public static $rules = [
 		// Validation rules
+        'name' => 'required|max:255',
 	];
 
 	// Relationships

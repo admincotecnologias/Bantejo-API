@@ -50,28 +50,13 @@ class ApplicationsController extends Controller {
     } 
     public function add(Request $request)
     {       
-        $validator = Validator::make($request->all(), [
-            'amountrequest' => 'required|numeric',
-            'applicationdate'=> 'required|date',
-            'place'=> 'required|max:255',
-            'creditterm'=> 'required|numeric',
-            'projectname'=> 'required|max:255',
-            'status'=> 'required|max:255',
-            'idclient'=> 'required|integer',
-        ]);
+        $validator = Validator::make($request->all(), App\Application::$rules['create']);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
         else{  
-            $application = new App\Application;
-            $application->amountrequest = $request->get('amountrequest');
-            $application->applicationdate = $request->get('applicationdate');
-            $application->place = $request->get('place');
-            $application->creditterm = $request->get('creditterm');
-            $application->projectname = $request->get('projectname');
-            $application->status = $request->get('status');
-            $application->idclient = $request->get('idclient');
-            $application->save();            
+            $application = App\Application::create($request->all());
+            $application->save();
             return response()->json(['error'=>false,'message'=>'solocitud agregado correctamente.','id'=>$application->id]);
         }
     }
@@ -92,20 +77,7 @@ class ApplicationsController extends Controller {
     public function update(Request $request,$id)
     {
         # code...
-        $validator = Validator::make($request->all(), [
-            'amountrequest' => 'numeric',
-            'amountsuccess'=> 'numeric',
-            'applicationdate'=> 'date',
-            'term'=> 'numeric',
-            'rate'=> 'numeric',
-            'arrears'=> 'numeric',
-            'periodicity'=> 'numeric',
-            'graceperiod'=> 'numeric',
-            'tax'=> 'numeric',
-            'interesttax'=> 'numeric',
-            'interest'=> 'numeric',
-            'status'=> 'max:255'
-        ]);
+        $validator = Validator::make($request->all(), App\Application::$rules['update']);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
@@ -113,54 +85,7 @@ class ApplicationsController extends Controller {
         if(!$application->isEmpty()){
             try {
 				$application = App\Application::where('id',$id)->find($id);
-                if ( $request->has('amountrequest') )
-                {
-                    $application->amountrequest = $request->get('amountrequest');
-                }  
-                if ( $request->has('amountsuccess') )
-                {
-                    $application->amountsuccess = $request->get('amountsuccess');
-                } 
-                if ( $request->has('applicationdate') )
-                {
-                    $application->applicationdate = $request->get('applicationdate');
-                }  
-                if ( $request->has('term') )
-                {
-                    $application->term = $request->get('term');
-                } 
-                if ( $request->has('rate') )
-                {
-                    $application->rate = $request->get('rate');
-                } 
-                if ( $request->has('arrears') )
-                {
-                    $application->arrears = $request->get('arrears');
-                }
-                if ( $request->has('periodicity') )
-                {
-                    $application->periodicity = $request->get('periodicity');
-                }
-                if ( $request->has('graceperiod') )
-                {
-                    $application->graceperiod = $request->get('graceperiod');
-                }
-                if ( $request->has('tax') )
-                {
-                    $application->tax = $request->get('tax');
-                }
-                if ( $request->has('interesttax') )
-                {
-                    $application->interesttax = $request->get('interesttax');
-                }
-                if ( $request->has('interest') )
-                {
-                    $application->interest = $request->get('interest');
-                }
-                if ( $request->has('status') )
-                {
-                    $application->status = $request->get('status');
-                }                      
+                $application->fill($request->all());
                 $application->save();
             
                 return response()->json(['error'=>false,'message'=>'solocitud editado correctamente.']);

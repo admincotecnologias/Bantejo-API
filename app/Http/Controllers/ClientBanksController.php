@@ -31,24 +31,13 @@ class ClientBanksController extends Controller {
     } 
     public function add(Request $data)
     {       
-        $validator = Validator::make($data->all(), [
-            'accounttype' => 'required|max:255',
-			'accountnumber' => 'required|max:11',
-            'clabe' => 'required|max:18',
-			'idclient' => 'required|integer',
-			'idbank' => 'required|integer',
-        ]);
+        $validator = Validator::make($data->all(), App\ClientBank::$rules['create']);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
         else{  
-            $clientbank = new App\ClientBank;
-            $clientbank->accounttype = $data['accounttype'];
-			$clientbank->accountnumber = $data['accountnumber'];
-            $clientbank->clabe = $data['clabe'];
-			$clientbank->idclient = $data['idclient'];
-			$clientbank->idbank = $data['idbank'];
-            $clientbank->save();            
+            $clientbank = App\ClientBank::create($data->all());
+            $clientbank->save();
             return response()->json(['error'=>false,'message'=>'banco agregado correctamente.','id'=>$clientbank->id]);
         }
     }
@@ -69,13 +58,7 @@ class ClientBanksController extends Controller {
     public function update(Request $request,$id)
     {
         # code...
-        $validator = Validator::make($request->all(), [
-            'accounttype' => 'max:255',
-			'accountnumber' => 'required|max:11',
-            'clabe' => 'required|max:18',
-			'idclient' => 'integer',
-			'idbank' => 'integer',
-        ]);
+        $validator = Validator::make($request->all(), App\ClientBank::$rules['update'] );
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
@@ -83,26 +66,7 @@ class ClientBanksController extends Controller {
         if(!$clientbank->isEmpty()){
             try {
 				$clientbank = App\ClientBank::where('id',$id)->find($id); 
-                if ( $request->has('accounttype') )
-                {
-                    $clientbank->accounttype = $request->get('accounttype');
-                }  
-				if ( $request->has('accountnumber') )
-                {
-                    $clientbank->accountnumber = $request->get('accountnumber');
-                } 
-                if ( $request->has('clabe') )
-                {
-                    $clientbank->clabe = $request->get('clabe');
-                }  
-				if ( $request->has('idclient') )
-                {
-                    $clientbank->idclient = $request->get('idclient');
-                } 
-				if ( $request->has('idbank') )
-                {
-                    $clientbank->idbank = $request->get('idbank');
-                }                      
+                $clientbank->fill($request->all());
                 $clientbank->save();
             
                 return response()->json(['error'=>false,'message'=>'banco editado correctamente.']);

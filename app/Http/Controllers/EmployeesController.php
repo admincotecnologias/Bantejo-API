@@ -44,12 +44,7 @@ class EmployeesController extends Controller {
     } 
     public function add(Request $data)
     {       
-        $validator = Validator::make($data->all(), [
-            'name' => 'required|max:255',
-			'lastname' => 'required|max:255',
-			'iduser' => 'required|integer|unique:employees',
-			'idoccupation' => 'required|integer',
-        ]);
+        $validator = Validator::make($data->all(), App\Employee::$rules['create']);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
@@ -57,17 +52,13 @@ class EmployeesController extends Controller {
 			$user = App\User::where('id',$data['iduser'])->get();
 			$occupation = App\Occupation::where('id',$data['idoccupation'])->get();
 			if($user->isEmpty()){
-				return response()->json(['error'=>true,'message'=>'usuario no encontrado.']);;
+				return response()->json(['error'=>true,'message'=>'usuario no encontrado.']);
 			}
 			if($occupation->isEmpty()){
-				return response()->json(['error'=>true,'message'=>'puesto no encontrado.']);;
+				return response()->json(['error'=>true,'message'=>'puesto no encontrado.']);
 			}
-            $employee = new App\Employee;
-            $employee->name = $data['name'];
-			$employee->lastname = $data['lastname'];
-			$employee->iduser = $data['iduser'];
-			$employee->idoccupation = $data['idoccupation'];
-            $employee->save();            
+            $employee = App\Employee::create($data->all());
+			$employee = save();
             return response()->json(['error'=>false,'message'=>'empleado agregado correctamente.','id'=>$employee->id]);
         }
     }
@@ -88,12 +79,7 @@ class EmployeesController extends Controller {
     public function update(Request $request,$id)
     {
         # code...
-        $validator = Validator::make($request->all(), [
-            'name' => 'max:255',
-			'lastname' => 'max:255',
-			'iduser' => 'integer|unique:employees',
-			'idoccupation' => 'integer',
-        ]);
+        $validator = Validator::make($request->all(), App\Employee::$rules['update']);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
@@ -101,32 +87,8 @@ class EmployeesController extends Controller {
         if(!$employee->isEmpty()){
             try {
                 $employee = App\Employee::where('id',$id)->find($id); 
-                if ( $request->has('name') )
-                {
-                    $employee->name = $request->get('name');
-                }
-				if ( $request->has('lastname') )
-                {
-                    $employee->lastname = $request->get('lastname');
-                }
-				if ( $request->has('iduser') )
-                {
-					$user = App\User::where('id',$request['iduser'])->get();					
-					if($user->isEmpty()){
-						return response()->json(['error'=>true,'message'=>'usuario no encontrado.']);;
-					}
-                    $employee->iduser = $request->get('iduser');
-                }
-				if ( $request->has('idoccupation') )
-                {
-					$occupation = App\Occupation::where('id',$request['idoccupation'])->get();
-					if($occupation->isEmpty()){
-						return response()->json(['error'=>true,'message'=>'puesto no encontrado.']);;
-					}
-                    $employee->idoccupation = $request->get('idoccupation');
-                }                          
+                $employee->fill($request->all());
                 $employee->save();
-            
                 return response()->json(['error'=>false,'message'=>'empleado editado correctamente.']);
             } catch (Exception $e) {
                 return response()->json(['error'=>false,'message'=>'no se pudo actualizar empleado.','errors'=>$e->getMessage()]);
