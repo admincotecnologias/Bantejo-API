@@ -58,7 +58,7 @@ class EmployeesController extends Controller {
 				return response()->json(['error'=>true,'message'=>'puesto no encontrado.']);
 			}
             $employee = App\Employee::create($data->all());
-			$employee = save();
+			$employee->save();
             return response()->json(['error'=>false,'message'=>'empleado agregado correctamente.','id'=>$employee->id]);
         }
     }

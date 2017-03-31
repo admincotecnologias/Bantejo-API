@@ -46,8 +46,10 @@ class ManagerclientsController extends Controller {
 			$manager->lastname = $data['lastname'];
 			$manager->rfc = $data['rfc'];
 			$manager->idclient = $data['idclient'];
-            if ($request->has('phone')){
+            if ($data->has('phone')){
                     $manager->phone = $data['phone'];
+            }else{
+                $manager->phone = null;
             }
             $manager->save();            
             return response()->json(['error'=>false,'message'=>'representante agregado correctamente.','id'=>$manager->id]);

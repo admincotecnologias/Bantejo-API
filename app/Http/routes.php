@@ -221,9 +221,10 @@ $app->delete('managerclients/{id}', 'ManagerclientsController@remove');
  * Routes for resource credits
  */
 $app->group(['prefix' => 'Credits','middleware'=>'Api'], function() use ($app) {
-    $app->get('/', 'CreditsController@all');
-    $app->get('credits/{id}', 'CreditsController@get');
+    $app->get('/all', 'CreditsController@allCreditApproved');
+    $app->get('show/{id}', 'CreditsController@showCreditApproved');
     $app->post('add', 'CreditsController@addCreditApproved');
+    $app->post('add/pay','CreditsController@addCreditPay');
     $app->put('credits/{id}', 'CreditsController@put');
     $app->delete('credits/{id}', 'CreditsController@remove');
 });

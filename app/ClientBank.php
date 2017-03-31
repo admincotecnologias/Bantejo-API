@@ -8,7 +8,7 @@ class ClientBank extends Model {
 	protected $table = 'client_banks';
 	use SoftDeletes;
 
-	protected $fillable = ['accounttype','accountnumber','accountage','idclient','idbank',];
+	protected $fillable = ['accounttype','accountnumber','accountage','idclient','idbank','clabe',];
 
 	protected $dates = ['deleted_at',];
 
@@ -16,7 +16,7 @@ class ClientBank extends Model {
 	    'create'=>[
             'accounttype' => 'required|max:255',
             'accountnumber' => 'required|max:11',
-            'clabe' => 'required|max:18',
+            'clabe' => 'required|max:20',
             'idclient' => 'required|integer',
             'idbank' => 'required|integer',
         ],

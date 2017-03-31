@@ -22,6 +22,9 @@ class CreateCreditsApprovedTable extends Migration
             $table->double('interest_arrear')->default(0); // Intereses moratorio
             $table->integer('grace_days')->default(31); // dias de periodo de gracia
             $table->string('currency')->default('MXN'); // tipo de cambio MXN/USD
+            $table->string('todo'); // Para que se usara el capital
+            $table->string('status'); // Status del credito
+            $table->integer('extends')->unsigned()->nullable(); //Credito indica si es modificado y siempre hace referencia al creidito inicial
             // Constraints declaration
             $table->timestamps();
             $table->softDeletes();
