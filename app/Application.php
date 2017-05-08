@@ -6,7 +6,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Application extends Model {
 	use SoftDeletes;
 
-	protected $fillable = ['amountrequest','amountsuccess','applicationdate','term','rate','arrears','periodicity','graceperiod','tax','interesttax','interest','status',];
+	protected $fillable = [
+        'amountrequest',
+        'applicationdate',
+        'place',
+        'creditterm',
+        'projectname',
+        'status',
+        'idclient',
+    ];
 
 	protected $dates = ['deleted_at',];
 

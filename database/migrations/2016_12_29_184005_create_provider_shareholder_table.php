@@ -14,9 +14,13 @@ class CreateProviderShareholderTable extends Migration
             $table->string('name');
             $table->string('lastname');
             $table->string('rfc');
-            $table->string('participation');
-            $table->string('occupation');
-            $table->date('oldwork');
+            $table->string('email');
+            $table->string('address');
+            $table->string('colony');
+            $table->string('postalcode');
+            $table->string('city');
+            $table->string('state');
+            $table->string('phone');
             $table->integer('idstockholder')->unsigned()->nullable();
             // Constraints declaration
             $table->timestamps();

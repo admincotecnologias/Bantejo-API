@@ -41,10 +41,7 @@ class CreditaidsController extends Controller {
                     return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
                     }
                     else{  
-                        $creditaid = new App\Creditaid;
-                        $creditaid->idapplication = $data['idapplication'];
-                        $creditaid->typeguarantee = $data['typeguarantee'];
-                        $creditaid->idguarantee = $data['idguarantee'];
+                        $creditaid =  App\Creditaid::create($data->all());
                         $creditaid->save();            
                         return response()->json(['error'=>false,'message'=>'aval agregado correctamente.','id'=>$creditaid->id]);
                     }
@@ -53,27 +50,8 @@ class CreditaidsController extends Controller {
                 if ($validator->fails()) {
                     return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
                 }
-                else{  
-                    $creditaid = new App\Creditaid;
-                    $creditaid->idapplication = $data['idapplication'];
-                    $creditaid->name = $data['name'];
-                    $creditaid->lastname = $data['lastname'];
-                    $creditaid->rfc = $data['rfc'];
-                    $creditaid->curp = $data['curp'];
-                    $creditaid->country = $data['country'];
-                    $creditaid->birthday = Carbon::parse($data['birthday']);
-                    $creditaid->nacionality = $data['nacionality'];
-                    $creditaid->email = $data['email'];
-                    $creditaid->fiel = $data['fiel'];
-                    $creditaid->address = $data['address'];
-                    $creditaid->phone = $data['phone'];
-                    $creditaid->maritalstatus = $data['maritalstatus'];
-                    $creditaid->regimen = $data['regimen'];
-                    $creditaid->relationship = $data['relationship'];
-                    $creditaid->companyjob = $data['companyjob'];
-                    $creditaid->phonejob = $data['phonejob'];
-                    $creditaid->occupation = $data['occupation'];
-                    $creditaid->oldwork = Carbon::parse($data['oldwork']);
+                else{
+                    $creditaid =  App\Creditaid::create($data->all());
                     $creditaid->save();            
                     return response()->json(['error'=>false,'message'=>'aval agregado correctamente.','id'=>$creditaid->id]);
                 }

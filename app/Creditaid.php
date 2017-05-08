@@ -1,10 +1,33 @@
 <?php namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Creditaid extends Model {
-
-	protected $fillable = ['idapplication','name','lastname','rfc','curp','birthday','country','nacionality','email','fiel','address','phone','maritalstatus','regimen','relationship','companyjob','phonejob','occupation','oldwork',];
+    protected $table = 'creditaids';
+    use SoftDeletes;
+	protected $fillable = [
+	    'idapplication',
+        'name',
+        'lastname',
+        'rfc',
+        'curp',
+        'birthday',
+        'country',
+        'nacionality',
+        'email',
+        'fiel',
+        'address',
+        'phone',
+        'maritalstatus',
+        'regimen',
+        'relationship',
+        'companyjob',
+        'phonejob',
+        'occupation',
+        'oldwork',
+        'idguarantee',
+        'typeguarantee',];
 
 	protected $hidden = [
         'deleted_at', 

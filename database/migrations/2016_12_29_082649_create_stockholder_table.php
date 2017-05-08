@@ -12,9 +12,11 @@ class CreateStockholderTable extends Migration
             $table->increments('id');
             // Schema declaration
             $table->string('businessname');
+            $table->string('name');
+            $table->string('lastname');
+            $table->string('type');//Fisica o Moral
             $table->string('rfc');
             $table->string('email');
-            $table->string('legalrepresentative');
             $table->string('address');
             $table->string('colony');
             $table->string('postalcode');

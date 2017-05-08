@@ -5,6 +5,7 @@ use App;
 use Illuminate\Support\Facades\DB;
 use Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 
 class CreditsController extends Controller {
@@ -40,7 +41,7 @@ class CreditsController extends Controller {
         $credit = App\approvedcredit::where('id',$id)->orWhere('extends', $id)->orderBy('start_date', 'asc')->get();
         $application = App\Application::where('id',$credit->toArray()[0]['application'])->first();
         $name = App\Client::where('id',$application->idclient)->first(['businessname']);
-        $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->orderBy('controlcredits.period', 'DESC')->first();
+        $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->whereRaw('controlcredits.credit=credits_approved.id')->orderBy('controlcredits.period', 'DESC')->first();
         $moves = array();
         foreach ($credit as $data){
             $moves[(string)$data->id]=App\controlcredit::where('credit',$data->id)->get();
@@ -66,12 +67,59 @@ class CreditsController extends Controller {
         }else{
             $credit = App\approvedcredit::create($request->all());
             $credit->save();
-            if($credit->id != null && $credit->extends==null){
-                $id = $request['application'];
-                $application = App\Application::where('id',$id)->find($id);
-                $application->status = 'Autorizado';
-                $application->save();
+            $id = $request['application'];
+            $application = App\Application::where('id',$id)->find($id);
+            $application->status = 'Autorizado';
+            if($credit->id != null && $credit->extends==null && $credit->type==1){
+                $move = new App\controlcredit();
+                $move->credit = $credit->id;
+                $move->period = $credit->start_date;
+                $move->capital_balance = $credit->amount;
+                $move->interest_balance = 0;
+                $move->iva_balance = 0;
+                $move->interest_arrear_balance = 0;
+                $move->interest_arrear_iva_balance = 0;
+                $move->currency = $credit->currency;
+                $move->save();
             }
+            if($credit->extends != null && $credit->type == 2){
+                $lastMove = App\controlcredit::where('credit',$credit->extends)->orderBy('id', 'DESC')->first();
+                if($lastMove){
+                    $startDate = Carbon::parse($credit->start_date);
+                    $finalDate = Carbon::parse($credit->start_date);
+                    $newDate = Carbon::parse($lastMove->period);
+                    $dateDif = $startDate->diffInDays($newDate);
+                    $move = new App\controlcredit();
+                    $move->credit = $credit->extends;
+                    $move->period = $credit->start_date;
+                    $move->capital_balance = floatval($lastMove->capital_balance);
+                    $move->interest_balance = floatval($lastMove->interest_balance) + (((floatval($credit->interest)/100/365)*floatval($move->capital_balance))*$dateDif);
+                    $move->iva_balance = ($move->interest_balance*($credit->iva/100));
+                    if($finalDate->addMonth(intval($credit->term))->timestamp <= $newDate->timestamp){
+                        $move->interest_arrear_balance = $lastMove->interest_arrear_balance + ((($credit->interest_arrear/100/365)*$dateDif)*($move->capital_balance+$move->interest_balance));
+                        $move->interest_arrear_iva_balance = $move->interest_arrear_balance*($credit->iva/100);
+                    }else{
+                        $move->interest_arrear_balance = 0;
+                        $move->interest_arrear_iva_balance = 0;
+                    }
+                    $move->capital_balance = floatval($credit->amount) + floatval($lastMove->capital_balance);
+                    $move->currency = $credit->currency;
+                    $move->save();
+                }
+                else{
+                    $move = new App\controlcredit();
+                    $move->credit = $credit->extends;
+                    $move->period = $credit->start_date;
+                    $move->capital_balance = $credit->amount;
+                    $move->interest_balance = 0;
+                    $move->iva_balance = 0;
+                    $move->interest_arrear_balance = 0;
+                    $move->interest_arrear_iva_balance = 0;
+                    $move->currency = $credit->currency;
+                    $move->save();
+                }
+            }
+            $application->save();
             return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],200);
         }
     }
@@ -82,6 +130,11 @@ class CreditsController extends Controller {
         }else{
             $credit = App\controlcredit::create($request->all());
             $credit->save();
+            if($credit->capital_balance < .01){
+                $status = App\approvedcredit::where('id',$credit->credit)->first();
+                App\approvedcredit::where('application',$status->application)->update(['status' => 'Liquidado' ]);
+
+            }
             return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],200);
         }
     }
