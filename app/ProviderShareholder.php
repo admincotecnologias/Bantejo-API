@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProviderShareholder extends Model {
-	protected $table = 'provider_shareholder';
+	protected $table = 'stockholder_shareholder';
 	use SoftDeletes;
 
 	protected $fillable = [

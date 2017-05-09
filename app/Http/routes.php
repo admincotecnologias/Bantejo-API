@@ -229,3 +229,12 @@ $app->group(['prefix' => 'Credits','middleware'=>'Api'], function() use ($app) {
     $app->delete('credits/{id}', 'CreditsController@remove');
 });
 
+
+/**
+ * Routes for resource stockholder
+ */
+$app->get('stockholder', 'StockholdersController@all');
+$app->get('stockholder/{id}', 'StockholdersController@get');
+$app->post('stockholder', 'StockholdersController@add');
+$app->put('stockholder/{id}', 'StockholdersController@put');
+$app->delete('stockholder/{id}', 'StockholdersController@remove');
