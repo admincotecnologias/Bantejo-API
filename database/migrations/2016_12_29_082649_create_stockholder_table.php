@@ -11,9 +11,9 @@ class CreateStockholderTable extends Migration
         Schema::create('stockholder', function(Blueprint $table) {
             $table->increments('id');
             // Schema declaration
-            $table->string('businessname');
-            $table->string('name');
-            $table->string('lastname');
+            $table->string('businessname')->nullable();
+            $table->string('name')->nullable();
+            $table->string('lastname')->nullable();
             $table->string('type');//Fisica o Moral
             $table->string('rfc');
             $table->string('email');

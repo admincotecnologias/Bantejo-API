@@ -20,16 +20,16 @@ class StockAccount extends Model {
 	public static $rules = [
 		// Validation rules
         'create'=>[
-            'accounttype'=>'max:255|require',
-            'accountnumber'=>'integer|require',
-            'clabe'=>'integer|require',
-            'idstock'=>'integer|require',
-            'idbank'=>'integer|require',
+            'accounttype'=>'max:255|required',
+            'accountnumber'=>'numeric|required',
+            'clabe'=>'max:20|required',
+            'idstock'=>'integer|required',
+            'idbank'=>'integer|required',
         ],
         'update'=>[
             'accounttype'=>'max:255',
-            'accountnumber'=>'integer',
-            'clabe'=>'integer',
+            'accountnumber'=>'numeric',
+            'clabe'=>'max:20',
             'idstock'=>'integer',
             'idbank'=>'integer',
         ]

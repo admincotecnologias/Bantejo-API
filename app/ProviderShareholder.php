@@ -27,17 +27,17 @@ class ProviderShareholder extends Model {
     public static $rules = [
         // Validation rules
         'create'=>[
-            'name'=>'require|max:255',
-            'lastname'=>'require|max:255',
-            'rfc'=>'require|max:255',
-            'email'=>'require|max:255',
-            'address'=>'require|max:255',
-            'colony'=>'require|max:255',
-            'postalcode'=>'require|max:255',
-            'city'=>'require|max:255',
-            'state'=>'require|max:255',
-            'phone'=>'require|max:255',
-            'idstockholder'=>'require|integer'
+            'name'=>'required|max:255',
+            'lastname'=>'required|max:255',
+            'rfc'=>'required|max:255',
+            'email'=>'required|max:255',
+            'address'=>'required|max:255',
+            'colony'=>'required|max:255',
+            'postalcode'=>'required|max:255',
+            'city'=>'required|max:255',
+            'state'=>'required|max:255',
+            'phone'=>'required|max:255',
+            'idstockholder'=>'required|integer'
         ],
         'update'=>[
             'name'=>'max:255',

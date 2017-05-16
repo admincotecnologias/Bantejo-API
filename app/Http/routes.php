@@ -103,18 +103,6 @@ use Illuminate\Http\Request;
     });
 
 /**
- * Routes for resource providers
- */
-  $app->group(['prefix' => 'Proveedores','middleware'=>'Api'], function() use ($app) {
-     $app->get('all', 'ProvidersController@all');
-     $app->post('add','ProvidersController@add');
-     $app->get('show/{id}', 'ProvidersController@show');
-     $app->put('update/{id}', 'ProvidersController@update');
-     $app->delete('delete/{id}', 'ProvidersController@delete');
-     $app->get('report/{id}', 'ProvidersController@report');
-    });
-
-/**
  * Routes for resource client-banks
  */
  $app->group(['prefix' => 'BancosClientes','middleware'=>'Api'], function() use ($app) {
@@ -137,15 +125,6 @@ use Illuminate\Http\Request;
      $app->delete('delete/{id}', 'ClientShareholdersController@delete');
      $app->get('report/{id}', 'ClientShareholdersController@report');
     });
-
-/**
- * Routes for resource provider-shareholders
- */
-$app->get('provider-shareholders', 'ProviderShareholdersController@all');
-$app->get('provider-shareholders/{id}', 'ProviderShareholdersController@get');
-$app->post('provider-shareholders', 'ProviderShareholdersController@add');
-$app->put('provider-shareholders/{id}', 'ProviderShareholdersController@put');
-$app->delete('provider-shareholders/{id}', 'ProviderShareholdersController@remove');
 
 /**
  * Routes for resource applications
@@ -209,15 +188,6 @@ $app->delete('provider-shareholders/{id}', 'ProviderShareholdersController@remov
     });
 
 /**
- * Routes for resource managerclients
- */
-$app->get('managerclients', 'ManagerclientsController@all');
-$app->get('managerclients/{id}', 'ManagerclientsController@get');
-$app->post('managerclients', 'ManagerclientsController@add');
-$app->put('managerclients/{id}', 'ManagerclientsController@put');
-$app->delete('managerclients/{id}', 'ManagerclientsController@remove');
-
-/**
  * Routes for resource credits
  */
 $app->group(['prefix' => 'Credits','middleware'=>'Api'], function() use ($app) {
@@ -233,8 +203,24 @@ $app->group(['prefix' => 'Credits','middleware'=>'Api'], function() use ($app) {
 /**
  * Routes for resource stockholder
  */
-$app->get('stockholder', 'StockholdersController@all');
-$app->get('stockholder/{id}', 'StockholdersController@get');
-$app->post('stockholder', 'StockholdersController@add');
-$app->put('stockholder/{id}', 'StockholdersController@put');
-$app->delete('stockholder/{id}', 'StockholdersController@remove');
+$app->group(['prefix' => 'Fondeadores','middleware'=>'Api'], function() use ($app) {
+    $app->get('all', 'StockholdersController@allStockholder');
+    $app->get('show/{id}', 'StockholdersController@showStockholder');
+    $app->post('add', 'StockholdersController@createStockholder');
+    $app->put('update/{id}', 'StockholdersController@updateStockholder');
+    $app->delete('delete/{id}', 'StockholdersController@deleteStockholder');
+
+    $app->get('all/managers', 'StockholdersController@allManager');
+    $app->get('show/{id}/managers', 'StockholdersController@showManager');
+    $app->post('add/managers', 'StockholdersController@createManager');
+    $app->put('update/{id}/managers', 'StockholdersController@updateManager');
+    $app->delete('delete/{id}/managers', 'StockholdersController@deleteManager');
+
+    $app->get('all/account', 'StockholdersController@allAccount');
+    $app->get('show/{id}/account', 'StockholdersController@showAccount');
+    $app->post('add/account', 'StockholdersController@createAccount');
+    $app->put('update/{id}/account', 'StockholdersController@updateAccount');
+    $app->delete('delete/{id}/account', 'StockholdersController@deleteAccount');
+});
+
+

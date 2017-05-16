@@ -5,13 +5,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Stockholder extends Model {
 	use SoftDeletes;
-	
+
+	protected $table = 'stockholder';
 	protected $fillable = [
         'businessname',
         'name',
         'lastname',
         'type', //Fisica o Moral
-        //'rfc',
+        'rfc',
         'email',
         'legalrepresentative',
         'address',
@@ -29,27 +30,26 @@ class Stockholder extends Model {
     public static $rules = [
         // Validation rules
         'create'=>[
-            'businessname'=>'max:255',
-            'name'=>'max:255',
-            'lastname'=>'max:255',
-            'type'=>'require|max:255', //Fisica o Moral
-            'rfc'=>'require|max:20',
-            'email'=>'require|max:255',
-            'legalrepresentative'=>'require|max:255',
-            'address'=>'require|max:255',
-            'colony'=>'require|max:255',
-            'postalcode'=>'require|max:255',
-            'city'=>'require|max:255',
-            'state'=>'require|max:255',
-            'phone'=>'require|max:255',
-            'nationality'=>'require|max:255',
+            'businessname'=>'max:255|nullable',
+            'name'=>'max:255|nullable',
+            'lastname'=>'max:255|nullable',
+            'type'=>'required|max:255', //Fisica o Moral
+            'rfc'=>'required|max:20',
+            'email'=>'required|max:255',
+            'address'=>'required|max:255',
+            'colony'=>'required|max:255',
+            'postalcode'=>'required|max:255',
+            'city'=>'required|max:255',
+            'state'=>'required|max:255',
+            'phone'=>'required|max:255',
+            'nationality'=>'required|max:255',
         ],
         'update'=>[
             'businessname'=>'max:255',
             'name'=>'max:255',
             'lastname'=>'max:255',
             'type'=>'max:255', //Fisica o Moral
-            'rfc',
+            'rfc'=>'max:255',
             'email'=>'max:255',
             'legalrepresentative'=>'max:255',
             'address'=>'max:255',

@@ -3,17 +3,15 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateCreditsApprovedTable extends Migration
+class CreateFundTable extends Migration
 {
     
     public function up()
     {
-        Schema::create('credits_approved', function(Blueprint $table) {
+        Schema::create('fund', function(Blueprint $table) {
             $table->increments('id');
             // Schema declaration
-            // Schema declaration
-            $table->integer('application')->unsigned()->nullable();
-            $table->integer('type')->unsigned()->nullable(); //Tipo segun los definidos en la tabla de tipos
+            $table->integer('idstock')->unsigned()->nullable();
             $table->double('amount'); //monto inicial del credito
             $table->date('start_date');  // Fecha de inicio del Credito
             $table->integer('term'); // No. de meses del credito
@@ -29,13 +27,12 @@ class CreateCreditsApprovedTable extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('type')->references('id')->on('credits_Available')->onDelete('set null');
-            $table->foreign('application')->references('id')->on('applications')->onDelete('set null');
+            $table->foreign('idstock')->references('id')->on('stockholder')->onDelete('set null');
         });
     }
 
     public function down()
     {
-        Schema::drop('credits_approved');
+        Schema::drop('fund');
     }
 }

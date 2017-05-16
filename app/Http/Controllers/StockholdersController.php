@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
 use App\ProviderShareholder;
 use Validator;
-
+use Log;
 
 class StockholdersController extends Controller {
 
@@ -50,7 +50,7 @@ class StockholdersController extends Controller {
 	    $stockholder = App\Stockholder::where('id',$id)->first();
 	    if($stockholder->id){
 	        $managers = App\ProviderShareholder::where('idstockholder',$stockholder->id)->get();
-	        $accounts = App\StockAccount::where('idstockholder',$stockholder->id)->get();
+	        $accounts = App\StockAccount::where('idstock',$stockholder->id)->get();
         }
         return response()->json([
             'error'=>false,
@@ -71,13 +71,14 @@ class StockholdersController extends Controller {
             ]);
         }
         else{
-            $stockholder = App\Stockholder::where('id',$id)->update($request->all());
+            $stockholder = App\Stockholder::where('id',$id)->first();
+            $stockholder->fill($request->all());
             $stockholder->save();
             if($stockholder->id > 0){
                 return response()->json([
                     'error'=>false,
                     'message'=>'Guardado.',
-                    'stockholder'=>$stockholder->id
+                    'stockholders'=>$stockholder
                 ]);
             }else{
                 return response()->json([
@@ -134,7 +135,7 @@ class StockholdersController extends Controller {
     }
 
     public  function showManager($id){
-        $stockholder = App\ProviderShareholder::where('id',$id)->first();
+        $stockholder = App\ProviderShareholder::where('idstockholder',$id)->get();
         return response()->json([
             'error'=>false,
             'message'=>'ok',
@@ -142,7 +143,8 @@ class StockholdersController extends Controller {
         ]);
     }
 
-    public  function updateManager($id,Request $request){
+    public  function updateManager(Request $request,$id){
+        Log::info('Showing ID: '.$id);
         $validate = Validator::make($request->all(),App\ProviderShareholder::$rules['update']);
         if ($validate->fails()) {
             return response()->json([
@@ -152,7 +154,8 @@ class StockholdersController extends Controller {
             ]);
         }
         else{
-            $stockholder = App\ProviderShareholder::where('id',$id)->update($request->all());
+            $stockholder = App\ProviderShareholder::where('id',$id)->first();
+            $stockholder->fill($request->all());
             $stockholder->save();
             if($stockholder->id > 0){
                 return response()->json([
@@ -215,7 +218,7 @@ class StockholdersController extends Controller {
     }
 
     public  function showAccount($id){
-        $stockholder = App\StockAccount::where('id',$id)->first();
+        $stockholder = App\StockAccount::where('idstock',$id)->get();
         return response()->json([
             'error'=>false,
             'message'=>'ok',
@@ -233,13 +236,14 @@ class StockholdersController extends Controller {
             ]);
         }
         else{
-            $stockholder = App\StockAccount::where('id',$id)->update($request->all());
+            $stockholder = App\StockAccount::where('id',$id)->first();
+            $stockholder->fill($request->all());
             $stockholder->save();
             if($stockholder->id > 0){
                 return response()->json([
                     'error'=>false,
                     'message'=>'Guardado.',
-                    'stockholder'=>$stockholder->id
+                    'stockholders'=>$stockholder
                 ]);
             }else{
                 return response()->json([
