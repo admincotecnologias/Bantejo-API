@@ -20,7 +20,7 @@ class Control_Fund extends Model {
 	public static $rules = [
 		// Validation rules
         'create'=>[
-            'credit'=>'required|integer',
+            'credit'=>'required|integer|exists:fund,id',
             'period'=>'required|date',
             'capital_balance'=>'required|numeric',
             'interest_balance'=>'required|numeric',
@@ -42,6 +42,20 @@ class Control_Fund extends Model {
             'currency'=>'required|string',
         ]
 	];
+
+    protected $appends = ['LastMove'];
+
+    //Appends
+
+    public function getLastMoveAttribute(){
+        $last = DB::table('fund')
+            ->join('control_funds','control_funds.credit','=','fund.id')
+            ->select('control_funds.capital_balance','fund.id')
+            ->groupBy('fund.id')
+            ->orderBy('control_funds.period','DESC')
+            ->where('control_funds.extends','!=',null)
+            ->first();
+    }
 
 	// Relationships
 
