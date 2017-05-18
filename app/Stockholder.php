@@ -2,6 +2,8 @@
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\fund;
+use Illuminate\Support\Facades\DB;
 
 class Stockholder extends Model {
 	use SoftDeletes;
@@ -61,6 +63,20 @@ class Stockholder extends Model {
             'nationality'=>'max:255',
         ]
     ];
+
+    public $appends = ['capital'];
+
+    //Appends
+
+    public function getCapitalAttribute(){
+        $last = DB::table('Stockholder')
+            ->join('fund','fund.idstock','=',DB::raw($this->id))
+            ->join('control_funds','control_funds.credit','=',DB::raw('fund.id'))
+            ->select(DB::raw('SUM(DISTINCT(control_funds.capital_balance)) as capital'))
+            ->orderBy('control_funds.period','DESC')
+            ->first();
+        return $last->capital;
+    }
 
 	// Relationships
 

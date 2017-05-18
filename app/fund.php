@@ -1,6 +1,8 @@
 <?php
 namespace App;
 use App\Control_Fund;
+use App\fund;
+use Illuminate\Contracts\Logging\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\App;
@@ -46,20 +48,31 @@ class fund extends Model {
         ]
 	];
 
-	protected $appends = ['capital'];
+	public $appends = ['lastmove'];
 
 	//Appends
 
-    public function getLastMoveAttribute(){
+    public function getLastmoveAttribute(){
         $last = DB::table('fund')
-            ->join('control_funds','control_funds.credit','=','fund.id')
-            ->select(DB::raw('control_funds.capital_balance as capital,fund.id'))
-            ->groupBy('fund.id')
+            ->join('control_funds','control_funds.credit','=',DB::raw($this->id))
+            ->select('control_funds.capital_balance')
+            ->where('control_funds.credit','=',DB::raw($this->id))
+            ->where('fund.idstock','=',DB::raw('(select f.idstock from fund as f where f.id = '.DB::raw($this->id).' limit '.DB::raw(1).')'))
             ->orderBy('control_funds.period','DESC')
-            ->where('control_funds.extends','!=',null)
-            ->get();
-        return $last->capital;
+            ->first();
+        return $last;
     }
+    /*public function getLastmoveAttribute(){
+        $last = DB::table('fund')
+            ->join('control_funds','control_funds.credit','=',DB::raw($this->id))
+            ->select('fund.id','control_funds.capital_balance')
+            ->where('control_funds.credit','=',DB::raw($this->id))
+            ->where('fund.idstock','=',DB::raw('(select f.idstock from fund as f where f.id = '.DB::raw($this->id).' limit '.DB::raw(1).')'))
+            ->where('fund.id',DB::raw($this->id))
+            ->orderBy('control_funds.period','DESC')
+            ->get();
+        return $last;
+    }*/
 
 	// Relationships
 

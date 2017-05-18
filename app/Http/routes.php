@@ -12,7 +12,8 @@ use Illuminate\Http\Request;
  /**
  * Routes for resource api_auth
  */
- $app->post('/', 'CreditsController@addCreditType');
+ $app->get('/fund/{id}', 'CreditStockholdersController@getFundsByIDStockholder');
+ $app->get('/stock', 'StockholdersController@allStockholder');
  $app->group(['prefix' => 'Auth'], function() use ($app) {
      $app->post('LogIn', 'Api_authsController@LogIn');
      $app->get('LogOut','Api_authsController@LogOut');

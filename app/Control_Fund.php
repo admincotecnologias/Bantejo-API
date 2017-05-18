@@ -43,19 +43,6 @@ class Control_Fund extends Model {
         ]
 	];
 
-    protected $appends = ['LastMove'];
-
-    //Appends
-
-    public function getLastMoveAttribute(){
-        $last = DB::table('fund')
-            ->join('control_funds','control_funds.credit','=','fund.id')
-            ->select('control_funds.capital_balance','fund.id')
-            ->groupBy('fund.id')
-            ->orderBy('control_funds.period','DESC')
-            ->where('control_funds.extends','!=',null)
-            ->first();
-    }
 
 	// Relationships
 
