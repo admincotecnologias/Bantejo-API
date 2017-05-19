@@ -75,7 +75,7 @@ class Stockholder extends Model {
             ->select(DB::raw('SUM(DISTINCT(control_funds.capital_balance)) as capital'))
             ->orderBy('control_funds.period','DESC')
             ->first();
-        return $last->capital;
+        return $last->capital==null?0:$last->capital;
     }
 
 	// Relationships

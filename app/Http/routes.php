@@ -222,6 +222,12 @@ $app->group(['prefix' => 'Fondeadores','middleware'=>'Api'], function() use ($ap
     $app->post('add/account', 'StockholdersController@createAccount');
     $app->put('update/{id}/account', 'StockholdersController@updateAccount');
     $app->delete('delete/{id}/account', 'StockholdersController@deleteAccount');
+
+    $app->get('all/fund/{id}', 'CreditStockholdersController@getFundsByIDStockholder');
+    $app->get('show/{id}/fund', 'CreditStockholdersController@showAccount');
+    $app->post('add/fund', 'CreditStockholdersController@createAccount');
+    $app->put('update/{id}/fund', 'CreditStockholdersController@updateAccount');
+    $app->delete('delete/{id}/fund', 'CreditStockholdersController@deleteAccount');
 });
 
 

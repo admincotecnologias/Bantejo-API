@@ -2,6 +2,7 @@
 namespace App;
 use App\Control_Fund;
 use App\fund;
+use Carbon\Carbon;
 use Illuminate\Contracts\Logging\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -48,7 +49,7 @@ class fund extends Model {
         ]
 	];
 
-	public $appends = ['lastmove'];
+	public $appends = ['lastmove','datelimit','grace'];
 
 	//Appends
 
@@ -60,8 +61,20 @@ class fund extends Model {
             ->where('fund.idstock','=',DB::raw('(select f.idstock from fund as f where f.id = '.DB::raw($this->id).' limit '.DB::raw(1).')'))
             ->orderBy('control_funds.period','DESC')
             ->first();
-        return $last;
+        return $last->capital_balance;
     }
+    public function getDatelimitAttribute(){
+        $last = Carbon::parse($this->start_date);
+        $last = $last->addMonth($this->term);
+        return $last->timestamp;
+    }
+    public function getGraceAttribute(){
+        $last = Carbon::parse($this->start_date);
+        $last = $last->addMonth($this->term);
+        $grace = $last->addDays($this->grace_days);
+        return $grace->timestamp;
+    }
+
     /*public function getLastmoveAttribute(){
         $last = DB::table('fund')
             ->join('control_funds','control_funds.credit','=',DB::raw($this->id))

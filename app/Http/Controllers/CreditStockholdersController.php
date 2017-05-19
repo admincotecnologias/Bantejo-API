@@ -49,16 +49,19 @@ class CreditStockholdersController extends Controller {
             }
         }
     }
-    public function getFundsByIDStockholder ($id,Request $request){
+    public function getFundsByIDStockholder ($id){
         $funds = App\fund::where('idstock',$id)->get();
+        $stockholder = App\Stockholder::where('id',$id)->first();
         if($funds->count()>0){
             return response()->json(['error'=>false,
                 'message'=>'ok.',
-                'fund'=>$funds]);
+                'fund'=>$funds,
+                'stock'=>$stockholder]);
         }else{
             return response()->json(['error'=>true,
                 'message'=>'No hay creditos.',
-                'fund'=>null]);
+                'fund'=>null,
+            'stock' => $stockholder]);
         }
     }
     public function getCtrlByIDStockholder ($id,Request $request){
