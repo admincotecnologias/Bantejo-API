@@ -15,19 +15,20 @@ class FilesController extends BaseController {
         if ($data->hasFile('file')) {
     		//
 			$file = $data->file('file');
-			$path = realpath(base_path('storage/app'));
+			$path = realpath(base_path('public/storage/'));
 			$extension = '.'.$file->guessClientExtension();
 			$namefile = md5($data->file('file')->getClientOriginalName().str_random(15)).$extension;
 			$data->file('file')->move($path,$namefile);	
 			$filedb = new App\Files;
 			$filedb->name = $data->file('file')->getClientOriginalName();
-			$filedb->idapplication = $data->input('idapp');
+			$filedb->idapplication = (int)$data->input('idapplication');
 			$filedb->path = $namefile;
 			$filedb->mime = $data->file('file')->getClientMimeType();
 			$filedb->extension = $extension;
+            $filedb->type = $data->input('type');
 			$filedb->save();
 			
-			return response()->json(['error'=>false,'message'=>'Archivo guardado.','file'=>null]);
+			return response()->json(['error'=>false,'message'=>'Archivo guardado.','file'=>$filedb]);
 		} 
         return response()->json(['error'=>true,'message'=>'Archivo Invalido.','file'=>null]);
 	}
@@ -35,7 +36,7 @@ class FilesController extends BaseController {
 		$files = App\Files::where('id',$id)->get();
 		if(!$files->isEmpty()){
 			$file = $files[0];
-			return response()->json(['filepath'=>'storage/app/'.basename($file->path),'name'=>$file->name,'content-type' => $file->mime]);
+			return response()->json(['filepath'=>basename($file->path),'name'=>$file->name,'content-type' => $file->mime]);
 			//return response()->download($file->path,$file->name,['content-type' => $file->mime,
            //'Access-Control-Allow-Origin' => '*']);
 		}

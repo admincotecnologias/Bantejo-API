@@ -38,18 +38,27 @@ class ClientBanksController extends Controller {
         else{  
             $clientbank = App\ClientBank::create($data->all());
             $clientbank->save();
-            return response()->json(['error'=>false,'message'=>'banco agregado correctamente.','id'=>$clientbank->id]);
+            if($clientbank->id>0) {
+                $clientbanks = App\ClientBank::where('idclient', $clientbank->id)->get();
+                return response()->json(['error' => false, 'message' => 'banco agregado correctamente.', 'accounts' => $clientbanks]);
+            }
+                return response()->json(['error'=>true,'message'=>'banco no se agrego correctamente.','accounts'=>null]);            }
         }
-    }
     public function delete($id)
     {
         # code...
-        $clientbank = App\ClientBank::where('id', $id)->get();
-        if(!$clientbank->isEmpty()){
+        $clientbank = App\ClientBank::where('id', $id)->first();
+        if($clientbank->id != null){
             try {
+                $idclient = $clientbank->idclient;
                 $clientbank = App\ClientBank::where('id', $id)->delete();
-                return response()->json(['error'=>false,'message'=>'banco eliminado correctamente.']);
-            } catch (Exception $e) {
+                if($clientbank>0){
+                    $banks = App\ClientBank::where('idclient', $idclient)->get();
+                    return response()->json(['error'=>false,'message'=>'banco eliminado correctamente.','accounts'=>$banks]);
+                }else{
+                    return response()->json(['error'=>true,'message'=>'no se pudo eliminar banco.']);
+                }
+            } catch (\Exception $e) {
                 return response()->json(['error'=>true,'message'=>'no se pudo eliminar banco.','exception'=>$e->getMessage()]);
             }
         }

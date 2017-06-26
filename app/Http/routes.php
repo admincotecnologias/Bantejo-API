@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
  * Routes for resource api_auth
  */
  $app->get('/fund/{id}', 'CreditStockholdersController@getFundsByIDStockholder');
- $app->get('/stock', 'StockholdersController@allStockholder');
+ $app->get('/stock', 'DashboardsController@MorosidadTotal');
  $app->group(['prefix' => 'Auth'], function() use ($app) {
      $app->post('LogIn', 'Api_authsController@LogIn');
      $app->get('LogOut','Api_authsController@LogOut');
@@ -100,6 +100,8 @@ use Illuminate\Http\Request;
      $app->get('show/{id}', 'ClientsController@show');
      $app->put('update/{id}', 'ClientsController@update');
      $app->delete('delete/{id}', 'ClientsController@delete');
+     $app->delete('delete/{id}/files', 'FilesClientsController@DeleteFiles');
+     $app->delete('delete/{id}/manager', 'ManagerclientsController@delete');
      $app->get('report/{id}', 'ClientsController@report');
     });
 
@@ -133,6 +135,7 @@ use Illuminate\Http\Request;
 
  $app->group(['prefix' => 'Solicitudes','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'ApplicationsController@all');
+     $app->get('all/Clients', 'ApplicationsController@ClientsToCredit');
      $app->post('add','ApplicationsController@add');
      $app->get('show/{id}', 'ApplicationsController@show');
      $app->put('update/{id}', 'ApplicationsController@update');
@@ -224,10 +227,22 @@ $app->group(['prefix' => 'Fondeadores','middleware'=>'Api'], function() use ($ap
     $app->delete('delete/{id}/account', 'StockholdersController@deleteAccount');
 
     $app->get('all/fund/{id}', 'CreditStockholdersController@getFundsByIDStockholder');
-    $app->get('show/{id}/fund', 'CreditStockholdersController@showAccount');
-    $app->post('add/fund', 'CreditStockholdersController@createAccount');
-    $app->put('update/{id}/fund', 'CreditStockholdersController@updateAccount');
+    $app->get('show/{idStock}/fund/{id}', 'CreditStockholdersController@getCtrlByIDStockholder');
+    $app->post('add/fund', 'CreditStockholdersController@CreateFund');
+    $app->post('add/fundcntrl', 'CreditStockholdersController@CreateCntrl');
+    $app->put('update/{id}/fund', 'CreditStockholdersController@CreateCntrl');
     $app->delete('delete/{id}/fund', 'CreditStockholdersController@deleteAccount');
 });
 
 
+
+/**
+ * Routes for resource dashboard
+ */
+$app->group(['prefix' => 'Dashboard','middleware'=>'Api'], function() use ($app) {
+    $app->get('show/Morosidad', 'DashboardsController@MorosidadTotal');
+    $app->get('show/InteresNeto', 'DashboardsController@InteresesNeto');
+    $app->post('dashboard', 'DashboardsController@add');
+    $app->put('dashboard/{id}', 'DashboardsController@put');
+    $app->delete('dashboard/{id}', 'DashboardsController@remove');
+});

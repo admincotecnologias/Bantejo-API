@@ -95,6 +95,8 @@ class CreditsController extends Controller {
                     $move->capital_balance = floatval($lastMove->capital_balance);
                     $move->interest_balance = floatval($lastMove->interest_balance) + (((floatval($credit->interest)/100/365)*floatval($move->capital_balance))*$dateDif);
                     $move->iva_balance = ($move->interest_balance*($credit->iva/100));
+                    $move->interest = $move->interest_balance;
+                    $move->iva = $move->iva_balance;
                     if($finalDate->addMonth(intval($credit->term))->timestamp <= $newDate->timestamp){
                         $move->interest_arrear_balance = $lastMove->interest_arrear_balance + ((($credit->interest_arrear/100/365)*$dateDif)*($move->capital_balance+$move->interest_balance));
                         $move->interest_arrear_iva_balance = $move->interest_arrear_balance*($credit->iva/100);

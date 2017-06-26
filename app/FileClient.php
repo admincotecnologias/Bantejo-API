@@ -8,7 +8,7 @@ class FileClient extends Model {
 	protected $table = 'filesclient';
 	use SoftDeletes;
 
-	protected $fillable = ['idclient','name','path','extension','mime',];
+	protected $fillable = ['idclient','name','path','extension','mime','type'];
 
 	protected $dates = ['deleted_at',];
 

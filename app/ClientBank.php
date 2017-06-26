@@ -8,7 +8,7 @@ class ClientBank extends Model {
 	protected $table = 'client_banks';
 	use SoftDeletes;
 
-	protected $fillable = ['accounttype','accountnumber','accountage','idclient','idbank','clabe',];
+	protected $fillable = ['accounttype','accountnumber','idclient','idbank','clabe',];
 
 	protected $dates = ['deleted_at',];
 
@@ -28,6 +28,13 @@ class ClientBank extends Model {
             'idbank' => 'integer',
         ]
     ];
+    //Appends
+    public $appends = ['namebank'];
+
+    public function getNamebankAttribute(){
+        $bank = Bank::where('id',$this->idbank)->first();
+        return $bank->name;
+    }
 
 	// Relationships
 

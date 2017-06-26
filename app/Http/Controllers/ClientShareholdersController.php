@@ -36,7 +36,10 @@ class ClientShareholdersController extends Controller {
         else{  
             $clientshareholder = App\ClientShareholder::create($data->all());
             $clientshareholder->save();            
-            return response()->json(['error'=>false,'message'=>'aval agregado correctamente.','id'=>$clientshareholder->id]);
+            if($clientshareholder->id>0){
+                $clientshareholders = App\ClientShareholder::where('idclient',$clientshareholder->idclient)->get();
+                return response()->json(['error'=>false,'message'=>'aval agregado correctamente.','shareholders'=>$clientshareholders]);
+            }
         }
     }
     public function delete($id)

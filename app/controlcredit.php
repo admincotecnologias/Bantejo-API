@@ -7,7 +7,7 @@ class controlcredit extends Model {
 	protected $fillable = ['credit','period','capital_balance','interest_balance','iva_balance',
         'interest_arrear_balance','interest_arrear_iva_balance','capital','interest','interest_arrear','iva',
         'iva_arrear','pay','pay_capital','pay_interest','pay_iva','pay_interest_arrear','pay_iva_arrear','type_currency',
-        'currency',
+        'currency','typemove','idref'
     ];
 
 	protected $dates = ['deleted_at'];
@@ -35,6 +35,8 @@ class controlcredit extends Model {
             'pay_iva_arrear'=>'required|numeric',
             'type_currency'=>'required|numeric',
             'currency'=>'required|string',
+            'typemove'=>'string|nullable',
+            'idref'=>'integer|nullable'
         ]
 	];
 

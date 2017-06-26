@@ -69,13 +69,12 @@ class Stockholder extends Model {
     //Appends
 
     public function getCapitalAttribute(){
-        $last = DB::table('Stockholder')
-            ->join('fund','fund.idstock','=',DB::raw($this->id))
-            ->join('control_funds','control_funds.credit','=',DB::raw('fund.id'))
-            ->select(DB::raw('SUM(DISTINCT(control_funds.capital_balance)) as capital'))
-            ->orderBy('control_funds.period','DESC')
-            ->first();
-        return $last->capital==null?0:$last->capital;
+        $last = fund::where('idstock',$this->id)->get();
+        $capital = 0;
+        foreach ( $last as $item) {
+            $capital += $item->lastmove;
+        }
+        return $capital;
     }
 
 	// Relationships

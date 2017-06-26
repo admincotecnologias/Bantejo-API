@@ -6,13 +6,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Client extends Model {
 	use SoftDeletes;
 
-	protected $fillable = ['businessname','employeenumber','rfc','fiel','email','businesscategory','constitutiondate','address','colony','postalcode','city','state','phone',];
+	protected $fillable = ['name','lastname','type','businessname','employeenumber','rfc','fiel','email','businesscategory','constitutiondate','address','colony','postalcode','city','state','phone',];
 
 	protected $dates = ['deleted_at','updated_at','created_at'];
 
 	public static $rules =[
 	    'create'=>[
-            'businessname' => 'required|max:255',
+            'businessname' => 'required|max:255|nullable',
+            'name' => 'required|max:255|nullable',
+            'lastname' => 'required|max:255|nullable',
+            'type' => 'required|max:255',
             'employeenumber' => 'integer',
             'rfc' => 'required|max:255',
             'fiel' => 'max:255',
@@ -27,7 +30,10 @@ class Client extends Model {
             'phone' => 'required|max:20',
         ],
         'update'=>[
-            'businessname' => 'max:255',
+            'businessname' => 'required|max:255|nullable',
+            'name' => 'required|max:255|nullable',
+            'lastname' => 'required|max:255|nullable',
+            'type' => 'required|max:255',
             'employeenumber' => 'integer',
             'rfc' => 'max:255',
             'fiel' => 'max:255',
@@ -39,7 +45,7 @@ class Client extends Model {
             'postalcode' => 'integer',
             'city' => 'max:255',
             'state' => 'max:255',
-            'phone' => 'integer',
+            'phone' => 'required|max:20',
         ]
     ];
 

@@ -21,6 +21,7 @@ class FileClient extends Migration
             $table->string('path');
             $table->string('extension');
             $table->string('mime');
+            $table->string('type');
             // Constraints declaration
             $table->timestamps();
             $table->softDeletes();
