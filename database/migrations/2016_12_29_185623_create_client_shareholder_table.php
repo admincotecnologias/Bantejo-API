@@ -11,10 +11,12 @@ class CreateClientShareholderTable extends Migration
         Schema::create('client_shareholder', function(Blueprint $table) {
             $table->increments('id');
             // Schema declaration
-            $table->string('name');
+            $table->string('name')->nullable();
+            $table->string('businessname')->nullable();
+            $table->string('type');
             $table->string('rfc');
             $table->string('participation');
-            $table->string('lastname');
+            $table->string('lastname')->nullable();
             $table->date('oldwork');
             $table->integer('idclient')->unsigned()->nullable();
             // Constraints declaration

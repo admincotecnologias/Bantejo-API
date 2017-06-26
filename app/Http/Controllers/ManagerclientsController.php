@@ -36,6 +36,7 @@ class ManagerclientsController extends Controller {
 			'lastname' => 'required|max:255',
 			'rfc' => 'required|max:255',
 			'idclient' => 'required|integer',
+			'idfile' => 'required|integer',
         ]);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
@@ -46,13 +47,18 @@ class ManagerclientsController extends Controller {
 			$manager->lastname = $data['lastname'];
 			$manager->rfc = $data['rfc'];
 			$manager->idclient = $data['idclient'];
+			$manager->idfile = $data['idfile'];
             if ($data->has('phone')){
                     $manager->phone = $data['phone'];
             }else{
                 $manager->phone = null;
             }
-            $manager->save();            
-            return response()->json(['error'=>false,'message'=>'representante agregado correctamente.','id'=>$manager->id]);
+            $manager->save();
+            if($manager->id>0){
+                $return = App\Manager::where('idclient',$manager->idclient)->get();
+                return response()->json(['error'=>false,'message'=>'representante agregado correctamente.','managers'=>$return]);
+            }
+            return response()->json(['error'=>true,'message'=>'representante no se agrego correctamente.','managers'=>null]);
         }
     }
     public function delete($id)
@@ -62,8 +68,12 @@ class ManagerclientsController extends Controller {
         if(!$manager->isEmpty()){
             try {
                 $manager = App\managerclient::where('id', $id)->delete();
-                return response()->json(['error'=>false,'message'=>'representante eliminado correctamente.']);
-            } catch (Exception $e) {
+                if($manager>0){
+                    return response()->json(['error'=>false,'message'=>'representante eliminado correctamente.']);
+                }else{
+                    return response()->json(['error'=>true,'message'=>'Error al eliminar.']);
+                }
+            } catch (\Exception $e) {
                 return response()->json(['error'=>true,'message'=>'no se pudo eliminar representante.','exception'=>$e->getMessage()]);
             }
         }

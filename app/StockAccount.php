@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockAccount extends Model {
-    protected $table = 'StockAccount';
+    protected $table = 'stockaccount';
     use SoftDeletes;
 
 	protected $fillable = [

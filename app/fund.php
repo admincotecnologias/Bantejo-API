@@ -49,7 +49,7 @@ class fund extends Model {
         ]
 	];
 
-	public $appends = ['lastmove','datelimit','grace'];
+	public $appends = ['lastmove','datelimit','grace','interes'];
 
 	//Appends
 
@@ -59,9 +59,37 @@ class fund extends Model {
             ->select('control_funds.capital_balance')
             ->where('control_funds.credit','=',DB::raw($this->id))
             ->where('fund.idstock','=',DB::raw('(select f.idstock from fund as f where f.id = '.DB::raw($this->id).' limit '.DB::raw(1).')'))
-            ->orderBy('control_funds.period','DESC')
+            ->orderBy('control_funds.created_at','DESC')
             ->first();
-        return $last->capital_balance;
+        return $last==null?0:$last->capital_balance;
+    }
+    public function getInteresAttribute(){
+        $last = DB::table('fund')
+            ->selectRaw('control_funds.*')
+            ->join('control_funds','control_funds.credit','=',DB::raw($this->id))
+            ->where('control_funds.credit','=',DB::raw($this->id))
+            ->where('fund.idstock','=',DB::raw('(select f.idstock from fund as f where f.id = '.DB::raw($this->id).' limit '.DB::raw(1).')'))
+            ->orderBy('control_funds.id','DESC')
+            ->first();
+        if($last==null){
+            return 0;
+        }else{
+            $startDate = Carbon::parse($last->period);
+            $newDate = Carbon::today();
+            $finalDate = Carbon::parse($this->start_date)->addMonth(intval($this->term));
+            $graceDate = Carbon::parse($this->start_date)->addMonth(intval($this->term))->addDays(intval($this->grace_days));
+            $dateDif = $startDate->diffInDays($newDate);
+            if($finalDate->timestamp < $newDate->timestamp){
+                $dateDif = $startDate->diffInDays($finalDate);
+            }
+            $dateDifGrace = $newDate->diffInDays($graceDate);
+            $interes = ($last->interest_balance)+((($last->capital_balance*($this->interest/100))/365)*$dateDif);
+            $interesMoratorio = 0;
+            if($newDate->timestamp > $graceDate->timestamp){
+                $interesMoratorio = ($last->interest_arrear_balance)+(((($last->capital_balance+$interes)*($this->interest_arrear/100))/365)*$dateDifGrace);
+            }
+            return $interes + $interesMoratorio;
+        }
     }
     public function getDatelimitAttribute(){
         $last = Carbon::parse($this->start_date);
@@ -74,18 +102,6 @@ class fund extends Model {
         $grace = $last->addDays($this->grace_days);
         return $grace->timestamp;
     }
-
-    /*public function getLastmoveAttribute(){
-        $last = DB::table('fund')
-            ->join('control_funds','control_funds.credit','=',DB::raw($this->id))
-            ->select('fund.id','control_funds.capital_balance')
-            ->where('control_funds.credit','=',DB::raw($this->id))
-            ->where('fund.idstock','=',DB::raw('(select f.idstock from fund as f where f.id = '.DB::raw($this->id).' limit '.DB::raw(1).')'))
-            ->where('fund.id',DB::raw($this->id))
-            ->orderBy('control_funds.period','DESC')
-            ->get();
-        return $last;
-    }*/
 
 	// Relationships
 

@@ -11,7 +11,9 @@ class CreateClientsTable extends Migration
         Schema::create('clients', function(Blueprint $table) {
             $table->increments('id');
             // Schema declaration
-            $table->string('businessname');
+            $table->string('businessname')->nullable();
+            $table->string('name')->nullable();
+            $table->string('lastname')->nullable();
             $table->string('employeenumber')->nullable();
             $table->string('rfc');
             $table->string('fiel')->nullable();
@@ -24,6 +26,7 @@ class CreateClientsTable extends Migration
             $table->string('city');
             $table->string('state');
             $table->string('phone');
+            $table->string('type');
             // Constraints declaration
             $table->timestamps();
             $table->softDeletes();

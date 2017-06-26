@@ -43,7 +43,15 @@ class ClientsController extends Controller {
             $clientshareholder = App\ClientShareholder::where('idclient',$client->id)->get();
             $clientFiles = App\FileClient::where('idclient',$client->id)->get();
             $clientsmanagers = App\managerclient::where('idclient',$client->id)->get();
-            return response()->json(['error'=>false,'message'=>'ok','client'=>$client,'banks'=>$clientbank,'shareholders'=>$clientshareholder,'files'=>$clientFiles,'managers'=>$clientsmanagers]);
+            return response()->json([
+                'error'=>false,
+                'message'=>'ok',
+                'client'=>$client,
+                'banks'=>$clientbank,
+                'shareholders'=>$clientshareholder,
+                'files'=>$clientFiles,
+                'managers'=>$clientsmanagers
+            ]);
         }
         return response()->json(['error'=>true,'message'=>'no se encontro cliente.','client'=>null]);
     } 
@@ -56,7 +64,7 @@ class ClientsController extends Controller {
         else{  
             $client = App\Client::create($data->all());
             $client->save();            
-            return response()->json(['error'=>false,'message'=>'cliente agregado correctamente.','id'=>$client->id]);
+            return response()->json(['error'=>false,'message'=>'cliente agregado correctamente.','client'=>$client]);
         }
     }
     public function delete($id)
@@ -67,7 +75,7 @@ class ClientsController extends Controller {
             try {
                 $client = App\Client::where('id', $id)->delete();
                 return response()->json(['error'=>false,'message'=>'cliente eliminado correctamente.']);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 return response()->json(['error'=>true,'message'=>'no se pudo eliminar cliente.','exception'=>$e->getMessage()]);
             }
         }
@@ -89,7 +97,7 @@ class ClientsController extends Controller {
             
                 return response()->json(['error'=>false,'message'=>'cliente editado correctamente.']);
             } catch (Exception $e) {
-                return response()->json(['error'=>false,'message'=>'cliente no se pudo actualizar.','errors'=>$e->getMessage()]);
+                return response()->json(['error'=>true,'message'=>'cliente no se pudo actualizar.','errors'=>$e->getMessage()]);
             }
         }   
         else{

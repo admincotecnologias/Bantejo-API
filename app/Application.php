@@ -38,4 +38,16 @@ class Application extends Model {
             'idclient'=> 'integer',
         ]
     ];
+    protected $appends = ['clientname','avalesnum','filesnum'];
+
+    public function getClientnameAttribute(){
+        $client = Client::withTrashed()->where('id',$this->idclient)->first();
+        return $client->type=="Moral"?$client->businessname:$client->name.' '.$client->lastname;
+    }
+    public function getAvalesnumAttribute(){
+        return Creditaid::where('idapplication',$this->id)->count();
+    }
+    public function getFilesnumAttribute(){
+        return Files::where('idapplication',$this->id)->count();
+    }
 }

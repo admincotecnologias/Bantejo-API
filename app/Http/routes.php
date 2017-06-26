@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
  * Routes for resource api_auth
  */
  $app->get('/fund/{id}', 'CreditStockholdersController@getFundsByIDStockholder');
- $app->get('/stock', 'StockholdersController@allStockholder');
+ $app->get('/stock', 'DashboardsController@MorosidadTotal');
  $app->group(['prefix' => 'Auth'], function() use ($app) {
      $app->post('LogIn', 'Api_authsController@LogIn');
      $app->get('LogOut','Api_authsController@LogOut');
@@ -31,6 +31,20 @@ use Illuminate\Http\Request;
      $app->put('update/{id}', 'UserController@update');
      $app->delete('delete/{id}', 'UserController@delete');
      $app->get('report/{id}', 'UserController@report');
+
+     $app->get('all/Permisos', 'PermissionsController@all');
+     $app->post('add/Permisos','PermissionsController@add');
+     $app->get('show/{id}/Permisos', 'PermissionsController@show');
+     $app->put('update/{id}/Permisos', 'PermissionsController@update');
+     $app->delete('delete/{id}/Permisos', 'PermissionsController@delete');
+     $app->get('report/{id}/Permisos', 'PermissionsController@report');
+
+     $app->get('all/Paginas', 'PagesController@all');
+     $app->post('add/Paginas','PagesController@add');
+     $app->get('show/{id}/Paginas', 'PagesController@show');
+     $app->put('update/{id}/Paginas', 'PagesController@update');
+     $app->delete('delete/{id}/Paginas', 'PagesController@delete');
+     $app->get('report/{id}/Paginas', 'PagesController@report');
     });
 /**
  * Routes for resource Permission
@@ -100,7 +114,49 @@ use Illuminate\Http\Request;
      $app->get('show/{id}', 'ClientsController@show');
      $app->put('update/{id}', 'ClientsController@update');
      $app->delete('delete/{id}', 'ClientsController@delete');
+     $app->delete('delete/{id}/files', 'FilesClientsController@DeleteFiles');
+     $app->delete('delete/{id}/manager', 'ManagerclientsController@delete');
      $app->get('report/{id}', 'ClientsController@report');
+
+     $app->get('all/Bancos', 'BanksController@all');
+     $app->post('add/Bancos','BanksController@add');
+     $app->get('show/{id}/Bancos', 'BanksController@show');
+     $app->put('update/{id}/Bancos', 'BanksController@update');
+     $app->delete('delete/{id}/Bancos', 'BanksController@delete');
+     $app->get('report/{id}/Bancos', 'BanksController@report');
+
+     $app->get('all/AccionistasClientes', 'ClientShareholdersController@all');
+     $app->post('add/AccionistasClientes','ClientShareholdersController@add');
+     $app->get('show/{id}/AccionistasClientes', 'ClientShareholdersController@show');
+     $app->put('update/{id}/AccionistasClientes', 'ClientShareholdersController@update');
+     $app->delete('delete/{id}/AccionistasClientes', 'ClientShareholdersController@delete');
+     $app->get('report/{id}/AccionistasClientes', 'ClientShareholdersController@report');
+
+     $app->get('all/BancosClientes', 'ClientBanksController@all');
+     $app->post('add/BancosClientes','ClientBanksController@add');
+     $app->get('show/{id}/BancosClientes', 'ClientBanksController@show');
+     $app->put('update/{id}/BancosClientes', 'ClientBanksController@update');
+     $app->delete('delete/{id}/BancosClientes', 'ClientBanksController@delete');
+     $app->get('report/{id}/BancosClientes', 'ClientBanksController@report');
+
+     $app->get('all/FilesClient', 'FilesClientsController@all');
+     $app->post('add/FilesClient','FilesClientsController@add');
+     $app->get('show/{id}/FilesClient', 'FilesClientsController@ReturnFile');
+     $app->put('update/{id}/FilesClient', 'FilesClientsController@update');
+     $app->delete('delete/{id}/FilesClient', 'FilesClientsController@delete');
+     $app->get('report/{id}/FilesClient', 'FilesClientsController@report');
+
+     $app->get('all/Managers', 'ManagerclientsController@all');
+     $app->post('add/Managers','ManagerclientsController@add');
+     $app->get('show/{id}/Managers', 'ManagerclientsController@show');
+     $app->delete('delete/{id}/Managers', 'ManagerclientsController@delete');
+
+     $app->get('all/Managers', 'ManagerclientsController@all');
+     $app->post('add/Managers','ManagerclientsController@add');
+     $app->get('show/{id}/Managers', 'ManagerclientsController@show');
+     $app->delete('delete/{id}/Managers', 'ManagerclientsController@delete');
+
+
     });
 
 /**
@@ -133,11 +189,29 @@ use Illuminate\Http\Request;
 
  $app->group(['prefix' => 'Solicitudes','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'ApplicationsController@all');
+     $app->get('all/Clients', 'ApplicationsController@ClientsToCredit');
      $app->post('add','ApplicationsController@add');
      $app->get('show/{id}', 'ApplicationsController@show');
      $app->put('update/{id}', 'ApplicationsController@update');
      $app->delete('delete/{id}', 'ApplicationsController@delete');
      $app->get('report/{id}', 'ApplicationsController@report');
+
+     $app->get('all/AvalCredito', 'CreditaidsController@all');
+     $app->post('add/AvalCredito','CreditaidsController@add');
+     $app->get('show/{id}/AvalCredito', 'CreditaidsController@show');
+     $app->put('update/{id}/AvalCredito', 'CreditaidsController@update');
+     $app->delete('delete/{id}/AvalCredito', 'CreditaidsController@delete');
+     $app->get('report/{id}/AvalCredito', 'CreditaidsController@report');
+
+     $app->get('all/FilesApplication', 'FilesController@all');
+     $app->get('show/{id}/FilesApplication', 'FilesController@ReturnFile');
+
+     $app->get('/all/Credits', 'CreditsController@allCreditApproved');
+     $app->get('show/{id}/Credits', 'CreditsController@showCreditApproved');
+     $app->post('add/Credits', 'CreditsController@addCreditApproved');
+     $app->post('add/pay/Credits','CreditsController@addCreditPay');
+     $app->put('credits/{id}/Credits', 'CreditsController@put');
+     $app->delete('credits/{id}/Credits', 'CreditsController@remove');
     });
 
 /**
@@ -198,6 +272,20 @@ $app->group(['prefix' => 'Credits','middleware'=>'Api'], function() use ($app) {
     $app->post('add/pay','CreditsController@addCreditPay');
     $app->put('credits/{id}', 'CreditsController@put');
     $app->delete('credits/{id}', 'CreditsController@remove');
+
+    $app->get('all/Solicitudes', 'ApplicationsController@all');
+    $app->get('all/Clients/Solicitudes', 'ApplicationsController@ClientsToCredit');
+    $app->post('add/Solicitudes','ApplicationsController@add');
+    $app->get('show/{id}/Solicitudes', 'ApplicationsController@show');
+    $app->put('update/{id}/Solicitudes', 'ApplicationsController@update');
+    $app->delete('delete/{id}/Solicitudes', 'ApplicationsController@delete');
+    $app->get('report/{id}/Solicitudes', 'ApplicationsController@report');
+
+
+    $app->get('all/FilesApplication', 'FilesController@all');
+    $app->get('show/{id}/FilesApplication', 'FilesController@ReturnFile');
+
+
 });
 
 
@@ -224,10 +312,22 @@ $app->group(['prefix' => 'Fondeadores','middleware'=>'Api'], function() use ($ap
     $app->delete('delete/{id}/account', 'StockholdersController@deleteAccount');
 
     $app->get('all/fund/{id}', 'CreditStockholdersController@getFundsByIDStockholder');
-    $app->get('show/{id}/fund', 'CreditStockholdersController@showAccount');
-    $app->post('add/fund', 'CreditStockholdersController@createAccount');
-    $app->put('update/{id}/fund', 'CreditStockholdersController@updateAccount');
+    $app->get('show/{idStock}/fund/{id}', 'CreditStockholdersController@getCtrlByIDStockholder');
+    $app->post('add/fund', 'CreditStockholdersController@CreateFund');
+    $app->post('add/fundcntrl', 'CreditStockholdersController@CreateCntrl');
+    $app->put('update/{id}/fund', 'CreditStockholdersController@CreateCntrl');
     $app->delete('delete/{id}/fund', 'CreditStockholdersController@deleteAccount');
 });
 
 
+
+/**
+ * Routes for resource dashboard
+ */
+$app->group(['prefix' => 'Dashboard','middleware'=>'Api'], function() use ($app) {
+    $app->get('show/Morosidad', 'DashboardsController@MorosidadTotal');
+    $app->get('show/InteresNeto', 'DashboardsController@InteresesNeto');
+    $app->post('dashboard', 'DashboardsController@add');
+    $app->put('dashboard/{id}', 'DashboardsController@put');
+    $app->delete('dashboard/{id}', 'DashboardsController@remove');
+});

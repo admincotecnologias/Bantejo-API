@@ -13,6 +13,7 @@ class CreateManagerclientTable extends Migration
             // Schema declaration
             // Schema declaration
             $table->integer('idclient')->unsigned()->nullable();
+            $table->integer('idfile')->unsigned()->nullable();
             $table->string('name');
             $table->string('lastname');
             $table->string('rfc')->nullable();
@@ -22,6 +23,7 @@ class CreateManagerclientTable extends Migration
             $table->softDeletes();
 
             $table->foreign('idclient')->references('id')->on('clients')->onDelete('set null');
+            $table->foreign('idfile')->references('id')->on('filesclient')->onDelete('set null');
         });
     }
 

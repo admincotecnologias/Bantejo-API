@@ -7,7 +7,9 @@
     <meta charset="utf-8" />
 
     <style>
-        @page { margin: 1.5in 1in 1in 1in; }
+        @page {
+            padding: 1.5in 1in 1in 1in;
+        }
         html,body {font-family: "Courier New" sans-serif;}
         .header{
             width: 100%;

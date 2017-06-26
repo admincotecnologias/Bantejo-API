@@ -32,6 +32,7 @@ class CreateCreditaidsTable extends Migration
             $table->date('oldwork')->nullable();
             $table->string('typeguarantee');
             $table->integer('idguarantee')->unsigned()->nullable();
+            $table->integer('idfile')->nullable();
             // Constraints declaration
             $table->timestamps();
             $table->softDeletes();

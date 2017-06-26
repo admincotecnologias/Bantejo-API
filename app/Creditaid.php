@@ -40,6 +40,25 @@ class Creditaid extends Model {
                 'idapplication' => 'required|integer',
                 'typeguarantee'=> 'required|max:255',
                 'idguarantee'=> 'required|integer',
+                'name'=> 'nullable|required|max:255',
+                'lastname'=> 'nullable|required|max:255',
+                'rfc'=> 'nullable|required|max:13',
+                'curp'=> 'nullable|required|max:255',
+                'birthday'=> 'nullable|required|date',
+                'country'=> 'nullable|required|max:255',
+                'nacionality'=> 'nullable|required|max:255',
+                'email'=> 'nullable|required|email|max:255',
+                'fiel'=> 'nullable|max:255',
+                'address'=> 'nullable|required|max:255',
+                'phone'=> 'nullable|required|max:255',
+                'maritalstatus'=> 'nullable|required|max:255',
+                'regimen'=> 'nullable|max:255',
+                'relationship'=> 'nullable|required|max:255',
+                'companyjob'=> 'nullable|required|max:255',
+                'phonejob'=> 'nullable|required|max:255',
+                'occupation'=> 'nullable|required|max:255',
+                'oldwork'=> 'nullable|required|date',
+                'idfile'=> 'nullable|integer',
             ]
         ],
         'fisica'=>[
@@ -62,9 +81,32 @@ class Creditaid extends Model {
                 'companyjob'=> 'required|max:255',
                 'phonejob'=> 'required|max:255',
                 'occupation'=> 'required|max:255',
-                'oldwork'=> 'required|date'
+                'oldwork'=> 'required|date',
+                'typeguarantee'=> 'required|max:255',
+                'idguarantee'=> 'nullable|required|integer',
+                'idfile'=> 'nullable|required|integer',
             ]
         ]
     ];
+
+	protected $appends = ['businessname','rfcmoral'];
+	public function getBusinessnameAttribute(){
+	    if($this->idguarantee!=null){
+	        $client = Client::where('id',$this->idguarantee)->first(['businessname']);
+	        return $client->businessname;
+        }
+        else{
+	        return null;
+        }
+    }
+    public function getRfcmoralAttribute(){
+        if($this->idguarantee!=null){
+            $client = Client::where('id',$this->idguarantee)->first(['rfc']);
+            return $client->rfc;
+        }
+        else{
+            return null;
+        }
+    }
 
 }
