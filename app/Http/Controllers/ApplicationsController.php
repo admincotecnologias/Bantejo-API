@@ -90,7 +90,7 @@ class ApplicationsController extends Controller
         }
         return response()->json([
             'error' => true,
-            'message' => 'no se encontro solocitud.',
+            'message' => 'no se encontro solicitud.',
             'application' => null,
             'creditaids' => null,
             'files' => null,
@@ -113,7 +113,7 @@ class ApplicationsController extends Controller
             $application->save();
             return response()->json([
                 'error' => false,
-                'message' => 'solocitud agregado correctamente.',
+                'message' => 'solicitud agregada correctamente.',
                 'app' => $application
             ]);
         }
@@ -128,19 +128,19 @@ class ApplicationsController extends Controller
                 $application = App\Application::where('id', $id)->delete();
                 return response()->json([
                     'error' => false,
-                    'message' => 'solocitud eliminado correctamente.'
+                    'message' => 'solicitud eliminada correctamente.'
                 ]);
             } catch (Exception $e) {
                 return response()->json([
                     'error' => true,
-                    'message' => 'no se pudo eliminar solocitud.',
+                    'message' => 'no se pudo eliminar solicitud.',
                     'exception' => $e->getMessage()
                 ]);
             }
         }
         return response()->json([
             'error' => true,
-            'message' => 'no se encontro solocitud.'
+            'message' => 'no se encontro solicitud.'
         ]);
     }
 
@@ -164,19 +164,19 @@ class ApplicationsController extends Controller
 
                 return response()->json([
                     'error' => false,
-                    'message' => 'solocitud editado correctamente.'
+                    'message' => 'solicitud editado correctamente.'
                 ]);
             } catch (\Exception $e) {
                 return response()->json([
                     'error' => false,
-                    'message' => 'solocitud no se pudo actualizar.',
+                    'message' => 'solicitud no se pudo actualizar.',
                     'errors' => $e->getMessage()
                 ]);
             }
         } else {
             return response()->json([
                 'error' => false,
-                'message' => 'no se encontro solocitud.'
+                'message' => 'no se encontro solicitud.'
             ]);
         }
     }

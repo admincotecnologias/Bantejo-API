@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use App;
+use Validator;
 use App\FileClient;
 
 
@@ -13,6 +14,22 @@ class FilesClientsController extends Controller {
 	public function add(Request $data){		
         if ($data->hasFile('file')) {
     		//
+            $validator = Validator::make($data->all(),[
+                'type' => 'required',
+                'idclient'=> 'required|numeric|exists:clients,id'
+            ]);
+            if($validator->fails()){
+                $failed = $validator->failed();
+                if(isset($failed['type']['Required'])){
+                    return response()->json(['error'=>true,'message' => 'Falto especificar el tipo de archivo.']);
+                }
+                if(isset($failed['idclient']['Required'])){
+                    return response()->json(['error'=>true,'message' => 'Falto especificar el id del cliente.']);
+                }
+                if(isset($failed['idclient']['Exists'])){
+                    return response()->json(['error'=>true,'message' => 'ID de cliente no existe.']);
+                }
+            }
 			try{
                 $file = $data->file('file');
                 $path = realpath(base_path('public/storage/'));
@@ -45,7 +62,7 @@ class FilesClientsController extends Controller {
            //'Access-Control-Allow-Origin' => '*']);
 		}
 	}
-	public function DeleteFiles($id){
+	public function DeleteFile($id){
 	    $file = App\FileClient::where('id',$id)->delete();
 	    if($file>0){
             return response()->json(['error'=>false,'message'=>'Archivo eliminado.']);

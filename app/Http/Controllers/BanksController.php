@@ -35,6 +35,12 @@ class BanksController extends Controller {
             'name' => 'required|max:255|unique:banks',
         ]);
         if ($validator->fails()) {
+            $failed = $validator->failed();
+            //si la pagina ya estaba, pero se le habia hecho soft delete, la restauramos
+            if(isset($failed['name']['Unique'])){
+                App\Bank::where('name',$data['name'])->restore();
+                return response()->json(['error'=>false,'message'=>'campo restaurado.']);
+            }
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
         else{  

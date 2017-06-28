@@ -34,7 +34,20 @@ class PagesController extends Controller {
         $validator = Validator::make($data->all(), [
             'url' => 'required|max:255|unique:pages',
         ]);
+
+        $uniqueValidator = Validator::make($data->all(),[
+           'url' => 'unique:pages',
+        ]);
+
+
         if ($validator->fails()) {
+            $failed = $validator->failed();
+            //si la pagina ya estaba, pero se le habia hecho soft delete, la restauramos
+            if(isset($failed['url']['Unique'])){
+                App\Page::where('url',$data['url'])->restore();
+                return response()->json(['error'=>false,'message'=>'campo restaurado.']);
+            }
+            //de otra forma, tiene error
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
         else{  
@@ -70,11 +83,15 @@ class PagesController extends Controller {
         $page = App\Page::where('id',$id)->get();
         if(!$page->isEmpty()){
             try {
+                $page = App\Page::where('id',$id)->find($id);
+
                 if ( $request->has('url') )
                 {
+                    //actualizamos tanto el url como la fecha en la que se actualizo (la actual)
                     $page->url = $request->get('url');
+                    //$page->updated_at = date('Y-m-d H:i:s');
                 } 
-                $page = App\Page::where('id',$id)->find($id);          
+
                 $page->save();
             
                 return response()->json(['error'=>false,'message'=>'pagina editada correctamente.']);

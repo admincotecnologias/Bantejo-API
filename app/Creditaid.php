@@ -37,7 +37,7 @@ class Creditaid extends Model {
 	public static $rules=[
 	    'moral'=>[
 	        'create'=>[
-                'idapplication' => 'required|integer',
+                'idapplication' => 'required|integer|exists:applications,id',
                 'typeguarantee'=> 'required|max:255',
                 'idguarantee'=> 'required|integer',
                 'name'=> 'nullable|required|max:255',
@@ -63,7 +63,7 @@ class Creditaid extends Model {
         ],
         'fisica'=>[
             'create'=>[
-                'idapplication' => 'required|integer',
+                'idapplication' => 'required|integer|exists:applications,id',
                 'name'=> 'required|max:255',
                 'lastname'=> 'required|max:255',
                 'rfc'=> 'required|max:13',

@@ -7,11 +7,28 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use App;
 use App\Files;
+use Validator;
 
 
 class FilesController extends BaseController {
 
-	public function add(Request $data){		
+	public function add(Request $data){
+
+        //
+        $validator = Validator::make($data->all(),[
+            'idapplication'=> 'required|numeric|exists:applications,id'
+        ]);
+        if($validator->fails()){
+            $failed = $validator->failed();
+            if(isset($failed['idapplication']['Required'])){
+                return response()->json(['error'=>true,'message' => 'Falto especificar el id de la aplicacion.']);
+            }
+            if(isset($failed['idapplication']['Exists'])){
+                return response()->json(['error'=>true,'message' => 'ID de aplicacion no existe.']);
+            }
+        }
+
+
         if ($data->hasFile('file')) {
     		//
 			$file = $data->file('file');

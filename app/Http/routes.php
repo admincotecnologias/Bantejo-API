@@ -49,6 +49,8 @@ use Illuminate\Http\Request;
 /**
  * Routes for resource Permission
  */
+
+/*
  $app->group(['prefix' => 'Permisos','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'PermissionsController@all');
      $app->post('add','PermissionsController@add');
@@ -60,6 +62,8 @@ use Illuminate\Http\Request;
 /**
  * Routes for resource Page
  */
+
+/*
  $app->group(['prefix' => 'Paginas','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'PagesController@all');
      $app->post('add','PagesController@add');
@@ -68,10 +72,13 @@ use Illuminate\Http\Request;
      $app->delete('delete/{id}', 'PagesController@delete');
      $app->get('report/{id}', 'PagesController@report');
     });
+*/
 
 /**
  * Routes for resource occupation
  */
+
+/*
  $app->group(['prefix' => 'Puestos','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'OccupationsController@all');
      $app->post('add','OccupationsController@add');
@@ -80,10 +87,12 @@ use Illuminate\Http\Request;
      $app->delete('delete/{id}', 'OccupationsController@delete');
      $app->get('report/{id}', 'OccupationsController@report');
     });
+/*
 
 /**
  * Routes for resource employee
  */
+/*
   $app->group(['prefix' => 'Empleados','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'EmployeesController@all');
      $app->post('add','EmployeesController@add');
@@ -92,10 +101,13 @@ use Illuminate\Http\Request;
      $app->delete('delete/{id}', 'EmployeesController@delete');
      $app->get('report/{id}', 'EmployeesController@report');
     });
+*/
 
 /**
  * Routes for resource banks
  */
+
+/*
   $app->group(['prefix' => 'Bancos','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'BanksController@all');
      $app->post('add','BanksController@add');
@@ -104,6 +116,7 @@ use Illuminate\Http\Request;
      $app->delete('delete/{id}', 'BanksController@delete');
      $app->get('report/{id}', 'BanksController@report');
     });
+*/
 
 /**
  * Routes for resource clients
@@ -139,29 +152,25 @@ use Illuminate\Http\Request;
      $app->delete('delete/{id}/BancosClientes', 'ClientBanksController@delete');
      $app->get('report/{id}/BancosClientes', 'ClientBanksController@report');
 
-     $app->get('all/FilesClient', 'FilesClientsController@all');
+     //$app->get('all/FilesClient', 'FilesClientsController@all');
      $app->post('add/FilesClient','FilesClientsController@add');
      $app->get('show/{id}/FilesClient', 'FilesClientsController@ReturnFile');
-     $app->put('update/{id}/FilesClient', 'FilesClientsController@update');
-     $app->delete('delete/{id}/FilesClient', 'FilesClientsController@delete');
-     $app->get('report/{id}/FilesClient', 'FilesClientsController@report');
+     //$app->put('update/{id}/FilesClient', 'FilesClientsController@update');
+     $app->delete('delete/{id}/FilesClient', 'FilesClientsController@DeleteFile');
+     //$app->get('report/{id}/FilesClient', 'FilesClientsController@report');
 
      $app->get('all/Managers', 'ManagerclientsController@all');
      $app->post('add/Managers','ManagerclientsController@add');
      $app->get('show/{id}/Managers', 'ManagerclientsController@show');
      $app->delete('delete/{id}/Managers', 'ManagerclientsController@delete');
-
-     $app->get('all/Managers', 'ManagerclientsController@all');
-     $app->post('add/Managers','ManagerclientsController@add');
-     $app->get('show/{id}/Managers', 'ManagerclientsController@show');
-     $app->delete('delete/{id}/Managers', 'ManagerclientsController@delete');
-
 
     });
 
 /**
  * Routes for resource client-banks
  */
+
+/*
  $app->group(['prefix' => 'BancosClientes','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'ClientBanksController@all');
      $app->post('add','ClientBanksController@add');
@@ -170,10 +179,14 @@ use Illuminate\Http\Request;
      $app->delete('delete/{id}', 'ClientBanksController@delete');
      $app->get('report/{id}', 'ClientBanksController@report');
     });
+*/
 
 /**
  * Routes for resource client-shareholders
  */
+
+/*
+
  $app->group(['prefix' => 'AccionistasClientes','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'ClientShareholdersController@all');
      $app->post('add','ClientShareholdersController@add');
@@ -182,6 +195,8 @@ use Illuminate\Http\Request;
      $app->delete('delete/{id}', 'ClientShareholdersController@delete');
      $app->get('report/{id}', 'ClientShareholdersController@report');
     });
+
+*/
 
 /**
  * Routes for resource applications
@@ -198,12 +213,13 @@ use Illuminate\Http\Request;
 
      $app->get('all/AvalCredito', 'CreditaidsController@all');
      $app->post('add/AvalCredito','CreditaidsController@add');
-     $app->get('show/{id}/AvalCredito', 'CreditaidsController@show');
+     //$app->get('show/{id}/AvalCredito', 'CreditaidsController@show');
      $app->put('update/{id}/AvalCredito', 'CreditaidsController@update');
      $app->delete('delete/{id}/AvalCredito', 'CreditaidsController@delete');
      $app->get('report/{id}/AvalCredito', 'CreditaidsController@report');
 
-     $app->get('all/FilesApplication', 'FilesController@all');
+     //$app->get('all/FilesApplication', 'FilesController@all');
+     $app->post('add/FilesApplication','FilesController@add');
      $app->get('show/{id}/FilesApplication', 'FilesController@ReturnFile');
 
      $app->get('/all/Credits', 'CreditsController@allCreditApproved');
@@ -218,6 +234,8 @@ use Illuminate\Http\Request;
  * Routes for resource creditaids
  */
 
+
+/*
  $app->group(['prefix' => 'AvalCredito','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'CreditaidsController@all');
      $app->post('add','CreditaidsController@add');
@@ -227,10 +245,14 @@ use Illuminate\Http\Request;
      $app->get('report/{id}', 'CreditaidsController@report');
     });
 
+*/
+
 
 /**
  * Routes for resource files
  */
+
+/*
   $app->group(['prefix' => 'FilesApplication','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'FilesController@all');
      $app->post('add','FilesController@add');
@@ -240,9 +262,15 @@ use Illuminate\Http\Request;
      $app->get('report/{id}', 'FilesController@report');
     });
 
+
+ */
+
+
 /**
  * Routes for resource files-clients
  */
+
+/*
  $app->group(['prefix' => 'FilesClient','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'FilesClientsController@all');
      $app->post('add','FilesClientsController@add');
@@ -251,16 +279,22 @@ use Illuminate\Http\Request;
      $app->delete('delete/{id}', 'FilesClientsController@delete');
      $app->get('report/{id}', 'FilesClientsController@report');
     });
+*/
+
 
 /**
  * Routes for resource managers
  */
+
+/*
   $app->group(['prefix' => 'Managers','middleware'=>'Api'], function() use ($app) {
      $app->get('all', 'ManagerclientsController@all');
      $app->post('add','ManagerclientsController@add');
      $app->get('show/{id}', 'ManagerclientsController@show');
      $app->delete('delete/{id}', 'ManagerclientsController@delete');
     });
+
+*/
 
 /**
  * Routes for resource credits
@@ -282,7 +316,7 @@ $app->group(['prefix' => 'Credits','middleware'=>'Api'], function() use ($app) {
     $app->get('report/{id}/Solicitudes', 'ApplicationsController@report');
 
 
-    $app->get('all/FilesApplication', 'FilesController@all');
+    $app->post('add/FilesApplication', 'FilesController@add');
     $app->get('show/{id}/FilesApplication', 'FilesController@ReturnFile');
 
 

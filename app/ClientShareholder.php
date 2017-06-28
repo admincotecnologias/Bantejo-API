@@ -19,10 +19,10 @@ class ClientShareholder extends Model {
             'businessname'=>'required|max:255|nullable',
             'name' => 'required|max:255|nullable',
             'lastname' => 'required|max:255|nullable',
-            'rfc' => 'required|max:13',
+            'rfc' => 'required|min:12|max:13',
             'participation' => 'required|integer',
             'oldwork' => 'required|date',
-            'idclient' => 'required|integer',
+            'idclient' => 'required|integer|exists:clients,id',
         ],
         'update'=>[
             'type'=>'max:255',

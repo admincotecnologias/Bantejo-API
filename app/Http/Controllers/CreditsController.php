@@ -122,7 +122,7 @@ class CreditsController extends Controller {
                 }
             }
             $application->save();
-            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],200);
+            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id,'application'=>$application],200);
         }
     }
     public function addCreditPay(Request $request){
