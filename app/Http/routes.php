@@ -45,6 +45,20 @@ use Illuminate\Http\Request;
      $app->put('update/{id}/Paginas', 'PagesController@update');
      $app->delete('delete/{id}/Paginas', 'PagesController@delete');
      $app->get('report/{id}/Paginas', 'PagesController@report');
+
+     $app->get('all/Empleados', 'EmployeesController@all');
+     $app->post('add/Empleados','EmployeesController@add');
+     $app->get('show/{id}/Empleados', 'EmployeesController@show');
+     $app->put('update/{id}/Empleados', 'EmployeesController@update');
+     $app->delete('delete/{id}/Empleados', 'EmployeesController@delete');
+     $app->get('report/{id}/Empleados', 'EmployeesController@report');
+
+     $app->get('all/Puestos', 'OccupationsController@all');
+     $app->post('add/Puestos','OccupationsController@add');
+     //$app->get('show/{id}/Puestos', 'OccupationsController@show');
+     //$app->put('update/{id}/Puestos', 'OccupationsController@update');
+     $app->delete('delete/{id}/Puestos', 'OccupationsController@delete');
+     //$app->get('report/{id}/Puestos', 'OccupationsController@report');
     });
 /**
  * Routes for resource Permission
@@ -163,6 +177,10 @@ use Illuminate\Http\Request;
      $app->post('add/Managers','ManagerclientsController@add');
      $app->get('show/{id}/Managers', 'ManagerclientsController@show');
      $app->delete('delete/{id}/Managers', 'ManagerclientsController@delete');
+
+     $app->get('all/Applications','ApplicationsController@all');
+     $app->get('all/Credits','CreditsController@allCreditApproved');
+
 
     });
 
@@ -299,7 +317,7 @@ use Illuminate\Http\Request;
 /**
  * Routes for resource credits
  */
-$app->group(['prefix' => 'Credits','middleware'=>'Api'], function() use ($app) {
+$app->group(['prefix' => 'Creditos','middleware'=>'Api'], function() use ($app) {
     $app->get('/all', 'CreditsController@allCreditApproved');
     $app->get('show/{id}', 'CreditsController@showCreditApproved');
     $app->post('add', 'CreditsController@addCreditApproved');
@@ -351,6 +369,9 @@ $app->group(['prefix' => 'Fondeadores','middleware'=>'Api'], function() use ($ap
     $app->post('add/fundcntrl', 'CreditStockholdersController@CreateCntrl');
     $app->put('update/{id}/fund', 'CreditStockholdersController@CreateCntrl');
     $app->delete('delete/{id}/fund', 'CreditStockholdersController@deleteAccount');
+
+    $app->post('add/Files_Stock','FilesStockController@add');
+    $app->get('show/{id}/Files_Stock','FilesStockController@ReturnFile');
 });
 
 
