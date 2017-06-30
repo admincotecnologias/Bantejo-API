@@ -372,6 +372,8 @@ $app->group(['prefix' => 'Fondeadores','middleware'=>'Api'], function() use ($ap
 
     $app->post('add/Files_Stock','FilesStockController@add');
     $app->get('show/{id}/Files_Stock','FilesStockController@ReturnFile');
+
+    $app->put('update/{idControlFund}/Control_Fund/{idFile}','CreditStockholdersController@updateFileByIDStockholder');
 });
 
 

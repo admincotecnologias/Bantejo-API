@@ -105,6 +105,22 @@ class CreditStockholdersController extends Controller {
             'stock' => $stockholder]);
         }
     }
+
+    public function updateFileByIDStockholder($idControlFund,$idFile){
+        $controlFund = App\Control_Fund::where('id',$idControlFund)->get();
+        //$controlFund->fileid = $idFile;
+        if(!$controlFund->isEmpty()){
+            try {
+                $controlFund = App\Control_Fund::where('id',$idControlFund)->find($idControlFund);
+                $controlFund->fileid = $idFile;
+                $controlFund->save();
+                return response()->json(['error'=>false,'message'=>'Disposicion actualizada correctamente']);
+            } catch (Exception $e) {
+                return response()->json(['error'=>false,'message'=>'Disposicion no se pudo actualizar.','errors'=>$e->getMessage()]);
+            }
+        }
+        $controlFund->save();
+    }
     public function getCtrlByIDStockholder ($idStock,$id,Request $request){
         $funds = App\fund::where('id',$id)->orWhere('extends',$id)->get();
         $ctrl = App\Control_Fund::where('credit',$id)->orderBy('period','ASC')->get();
