@@ -106,7 +106,7 @@ class CreditStockholdersController extends Controller {
         }
     }
 
-    public function updateFileByIDStockholder($idControlFund,$idFile){
+    public function updateControlFundFile($idControlFund,$idFile){
         $controlFund = App\Control_Fund::where('id',$idControlFund)->get();
         //$controlFund->fileid = $idFile;
         if(!$controlFund->isEmpty()){
@@ -121,7 +121,23 @@ class CreditStockholdersController extends Controller {
         }
         $controlFund->save();
     }
+    public function updateFundFile($idFund,$idFile){
+        $controlFund = App\fund::where('id',$idFund)->get();
+        //$controlFund->fileid = $idFile;
+        if(!$controlFund->isEmpty()){
+            try {
+                $controlFund = App\fund::where('id',$idFund)->find($idFund);
+                $controlFund->fileid = $idFile;
+                $controlFund->save();
+                return response()->json(['error'=>false,'message'=>'Disposicion actualizada correctamente']);
+            } catch (Exception $e) {
+                return response()->json(['error'=>false,'message'=>'Disposicion no se pudo actualizar.','errors'=>$e->getMessage()]);
+            }
+        }
+        $controlFund->save();
+    }
     public function getCtrlByIDStockholder ($idStock,$id,Request $request){
+
         $funds = App\fund::where('id',$id)->orWhere('extends',$id)->get();
         $ctrl = App\Control_Fund::where('credit',$id)->orderBy('period','ASC')->get();
         $stockholder = App\Stockholder::where('id',$idStock)->first();

@@ -15,6 +15,8 @@ class FilesStockController extends BaseController {
     public function add(Request $data){
 
         //
+
+
         $validator = Validator::make($data->all(),[
             'idstock'=> 'required|numeric|exists:applications,id'
         ]);
