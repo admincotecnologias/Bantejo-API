@@ -79,6 +79,9 @@ class CreditStockholdersController extends Controller {
         }else{
             $fund = App\Control_Fund::create($request->all());
             $fund->save();
+            if($fund->capital_balance < 0.10){
+                $fund->status = 'Liquidado';
+            }
             if($fund->id>0){
                 return response()->json(['error'=>false,
                     'message'=>'Creado.',
@@ -139,7 +142,7 @@ class CreditStockholdersController extends Controller {
     public function getCtrlByIDStockholder ($idStock,$id,Request $request){
 
         $funds = App\fund::where('id',$id)->orWhere('extends',$id)->get();
-        $ctrl = App\Control_Fund::where('credit',$id)->orderBy('period','ASC')->get();
+        $ctrl = App\Control_Fund::where('credit',$id)->withTrashed()->orderBy('period','ASC')->get();
         $stockholder = App\Stockholder::where('id',$idStock)->first();
         if($ctrl->count()>0){
             return response()->json(['error'=>false,
