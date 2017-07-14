@@ -10,7 +10,7 @@ class DashboardsController extends Controller {
             ->get()
             ->groupBy('vencimiento')->toArray();
         $total = 0;
-        $totalCapital = 0;
+        $totalCapital = 1;
         if(isset($data[1])){
             $capital = 0;
             foreach ($data[1] as $item){
@@ -70,6 +70,7 @@ class DashboardsController extends Controller {
         return response()->json($data);
     }
     public function InteresesNeto(){
+
         $credits = App\approvedcredit::where('extends',null)->get();
         $total = 0;
         foreach ($credits as $item){

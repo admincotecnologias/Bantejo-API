@@ -126,7 +126,7 @@ class Api_authsController extends Controller {
 				$user->save();
 				$employee = App\Employee::where('iduser',$user->id)->first();
 				$occupation = App\Occupation::where('id',$employee->idoccupation)->first();
-				return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation->name]);
+				return response()->json(['error'=>false,'message'=>'LogIn correcto.', 'id' => $employee->id,'token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation->name]);
 			}
 			else{
 				return response()->json(['error'=>true,'message'=>'Contraseña erronea.']);
