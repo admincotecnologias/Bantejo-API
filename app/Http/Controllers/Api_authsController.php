@@ -126,7 +126,8 @@ class Api_authsController extends Controller {
 				$user->save();
 				$employee = App\Employee::where('iduser',$user->id)->first();
 				$occupation = App\Occupation::where('id',$employee->idoccupation)->first();
-				return response()->json(['error'=>false,'message'=>'LogIn correcto.', 'id' => $employee->id,'token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation->name]);
+				$permissions = App\Permission::where('iduser',$user->id)->leftjoin('pages as pages','pages.id','=',"permissions.idpage")->get(["show","delete","edit","report","insert","pages.url"]);
+				return response()->json(['error'=>false,'message'=>'LogIn correcto.', 'permissions' => $permissions, 'id' => $employee->id,'token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation->name]);
 			}
 			else{
 				return response()->json(['error'=>true,'message'=>'Contraseña erronea.']);
