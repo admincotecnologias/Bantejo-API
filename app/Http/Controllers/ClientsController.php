@@ -104,6 +104,30 @@ class ClientsController extends Controller {
             return response()->json(['error'=>false,'message'=>'no se encontro cliente.']);
         }      
     }
+
+    public function getWallet($id){
+        $client = App\Client::where('id',$id)->get();
+        if(!$client->isEmpty())
+        {
+
+            $applications = App\Application::where('idclient',$id)->get();
+            if(!$applications->isEmpty())
+            {
+                $applicationsArray = $applications->pluck('id')->all();
+                $credits = App\approvedcredit::whereIn('application',$applicationsArray)->where('extends',null)->get();
+                if(!$credits->isEmpty())
+                {
+                    return response()->json(['error'=>false,'applications'=>$applications,'credits'=>$credits,'client'=>$client]);
+                }
+                return response()->json(['error'=>false,'message'=>'no se encontraron creditos.','credits'=>null,
+                    'applications'=>$applications,'client'=>$client]);
+            }
+            return response()->json(['error'=>false,'message'=>'no se encontraron solicitudes.','credits'=>null,
+                'applications'=>null,'client'=>$client]);
+        }
+        return response()->json(['error'=>true,'message'=>'no se encontro cliente.','credits'=>null,
+            'applications'=>null,'client'=>null]);
+    }
     public function report($id)
     {
         # code...        
