@@ -41,13 +41,13 @@ class Api_authsController extends Controller {
 		if(!$auth->getData()->error){
 			$user = $auth->getData()->user;
 			$path = $data->segments();
-			$page = App\Page::where('url',$path[0])->get();
+			$page = App\Page::where('url',$path[1])->get();
 			if(!$page->isEmpty()){
-				$page = App\Page::where('url',$path[0])->first();
+				$page = App\Page::where('url',$path[1])->first();
 				$permission = App\Permission::where('iduser',$user->id)->where('idpage',$page->id)->get();
 				if(!$permission->isEmpty()){
 					$permission = App\Permission::where('iduser',$user->id)->where('idpage',$page->id)->first();
-					switch ($path[1]) {
+					switch ($path[2]) {
 						case 'show':
 							if($permission->show == 1)
 								return response()->json(['error'=>false,'message'=>'rol ok','permisos'=>$permission]);
@@ -84,12 +84,35 @@ class Api_authsController extends Controller {
 			if($auth->getData()->message != 'token inexistente o no coincide'){
 				return response()->json(['error'=>true,'message'=>$auth->getData()->message]);
 			}
-			$this->Logout($data);
+			$this->AdminLogout($data);
 			return response()->json(['error'=>true,'message'=>$auth->getData()->message]);
 		}
 	}
 
-	public function LogOut(Request $data)
+    public function checkClientsRole(Request $data)
+    {
+        # code...
+        $auth = $this->checkAuth($data);
+        if(!$auth->getData()->error){
+            $user = $auth->getData()->user;
+            $path = $data->segments();
+            $page = App\Page::where('url',$path[1])->get();
+            if(!$page->isEmpty()) {
+
+
+            }
+            return response()->json(['error'=>true,'message'=>'no existe ruta.','code'=>2]);
+        }
+        else{
+            if($auth->getData()->message != 'token inexistente o no coincide'){
+                return response()->json(['error'=>true,'message'=>$auth->getData()->message]);
+            }
+            $this->ClientsLogout($data);
+            return response()->json(['error'=>true,'message'=>$auth->getData()->message]);
+        }
+    }
+
+	public function AdminLogOut(Request $data)
 	{
 			$token = $data->header('token');
 			$user = new App\User;
@@ -106,7 +129,7 @@ class Api_authsController extends Controller {
 			}
 	}
 	
-	public function LogIn(Request $data)
+	public function AdminLogIn(Request $data)
 	{
 		# code...
 		if(!$data->has('email')){
@@ -135,5 +158,48 @@ class Api_authsController extends Controller {
 		}
 		return response()->json(['error'=>true,'message'=>'Email incorrecto.']);
 	}
-	
+    public function ClientsLogOut(Request $data)
+    {
+        $token = $data->header('token');
+        $user = new App\User;
+        $user = App\User::where('api_token',$token)->where('api_token','!=','')->get();
+        if(!$user->isEmpty()){
+            $user = App\User::where('api_token',$token)->first();
+            $user->last_ip = str_random(15);
+            $user->api_token = str_random(60);
+            $user->save();
+            return response()->json(['error'=>false,'message'=>'LogOut OK.']);
+        }
+        else{
+            return response()->json(['error'=>true,'message'=>'token no existe.']);
+        }
+    }
+
+    public function ClientsLogIn(Request $data)
+    {
+        # code...
+        if(!$data->has('email')){
+            return response()->json(['error'=>true,'message'=>'Falta campo Email.']);
+        }
+        if(!$data->has('password')){
+            return response()->json(['error'=>true,'message'=>'Falta campo Password.']);
+        }
+        $user = new App\User;
+        $user = App\User::where('email',$data->email)->get();
+        if(!$user->isEmpty()){
+            $user = App\User::where('email',$data->email)->first();
+            if(password_verify($data->password, $user->password)){
+                $user->last_ip = $data->ip();
+                $user->api_token = str_random(60);
+                $user->last_connection = Carbon::now();
+                $user->save();
+                $client = App\Client::where('iduser',$user->id)->first();
+                return response()->json(['error'=>false,'message'=>'LogIn correcto.', 'permissions' => $permissions, 'id' => $employee->id,'token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation->name]);
+            }
+            else{
+                return response()->json(['error'=>true,'message'=>'Contraseña erronea.']);
+            }
+        }
+        return response()->json(['error'=>true,'message'=>'Email incorrecto.']);
+    }
 }

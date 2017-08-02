@@ -64,8 +64,11 @@ $app->singleton(
 */
 
  $app->routeMiddleware([
-   'Api' => App\Http\Middleware\ApiMiddleware::class
+   'AdminApi' => App\Http\Middleware\ApiAdminMiddleware::class
  ]);
+$app->routeMiddleware([
+    'ClientsApi' => App\Http\Middleware\ApiClientsMiddleware::class
+]);
 $app->Middleware([
    App\Http\Middleware\CorsMiddleware::class
  ]);

@@ -100,7 +100,7 @@ class CorsMiddleware {
      */
     public function handle($request, Closure $next) {
         if ($request->isMethod('OPTIONS')) {
-            $response = new Response("ACM1PT", 200);
+            $response = new Response("GET,POST,PUT,DELETE", 200);
         }
         else {
             $response = $next($request);
