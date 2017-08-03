@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
 use App\User;
 use Validator;
+use Illuminate\Auth\Authenticatable;
+use Laravel\Lumen\Auth\Authorizable;
 
 class UserController extends Controller
 {

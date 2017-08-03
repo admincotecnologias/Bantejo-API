@@ -9,6 +9,7 @@ use App\Page;
 use App\Permission;
 use App\Employee;
 use App\Occupation;
+use Laravel\Lumen\Auth\Authorizable;
 
 class Api_authsController extends Controller {
 

@@ -40,7 +40,7 @@ class CreditsController extends Controller {
     public function showCreditApproved(Request $request,$id){
         $credit = App\approvedcredit::where('id',$id)->orWhere('extends', $id)->orderBy('start_date', 'asc')->get();
         $application = App\Application::where('id',$credit->toArray()[0]['application'])->first();
-        $name = App\Client::where('id',$application->idclient)->first(['businessname']);
+        $name = App\Client::where('id',$application->idclient)->first(['businessname','name','lastname']);
         $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->whereRaw('controlcredits.credit=credits_approved.id')->orderBy('controlcredits.period', 'DESC')->first();
         $moves = array();
         foreach ($credit as $data){
