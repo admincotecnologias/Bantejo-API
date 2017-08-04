@@ -48,7 +48,14 @@ class CreditsController extends Controller {
         }
         if(!$credit->isEmpty())
         {
-            return response()->json(['error'=>false,'message'=>'ok','credits'=>$credit,'project'=>$application->projectname,'client'=>$name->businessname,'moves'=>$moves,'lastmove'=>$lastMove]);
+            if($name->businessname==null){
+                return response()->json(['error'=>false,'message'=>'ok','credits'=>$credit,
+                    'project'=>$application->projectname,'client'=>$name->name.' '.$name->lastname,'moves'=>$moves,'lastmove'=>$lastMove]);
+            }else{
+                return response()->json(['error'=>false,'message'=>'ok','credits'=>$credit,
+                    'project'=>$application->projectname,'client'=>$name->businessname,'moves'=>$moves,'lastmove'=>$lastMove]);
+            }
+
         }
         return response()->json(['error'=>true,'message'=>'no hay creditos registradas.','credits'=>null]);
     }
