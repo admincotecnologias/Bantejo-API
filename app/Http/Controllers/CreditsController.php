@@ -37,20 +37,27 @@ class CreditsController extends Controller {
         }
         return response()->json(['error'=>true,'message'=>'no hay creditos registradas.','credits'=>null]);
     }
-    public function showCreditApproved(Request $request,$id){
+
+    /**
+     * @param Request $request
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function showCreditApproved(Request $request, $id){
         $credit = App\approvedcredit::where('id',$id)->orWhere('extends', $id)->orderBy('start_date', 'asc')->get();
         $application = App\Application::where('id',$credit->toArray()[0]['application'])->first();
-        $name = App\Client::where('id',$application->idclient)->first(['businessname','name','lastname']);
+        $client = App\Client::where('id',$application->idclient)->first(['businessname','name','lastname']);
         $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->whereRaw('controlcredits.credit=credits_approved.id')->orderBy('controlcredits.period', 'DESC')->first();
         $moves = array();
         foreach ($credit as $data){
             $moves[(string)$data->id]=App\controlcredit::where('credit',$data->id)->get();
         }
-        if(!$credit->isEmpty())
-        {
-            return response()->json(['error'=>false,'message'=>'ok','credits'=>$credit,'project'=>$application->projectname,'client'=>$name->businessname,'moves'=>$moves,'lastmove'=>$lastMove]);
+        $name = $client->businessname == null ? $client->name." ".$client->lastname : $client->businessname;
+        if ($credit->count() > 0) {
+                return response()->json(['error'=>false,'message'=>'ok','credits'=>$credit,'project'=>$application->projectname,'client'=>$name,'moves'=>$moves,'lastmove'=>$lastMove]);
+            }else {
+            return response()->json(['error' => true, 'message' => 'no hay creditos registradas.', 'credits' => null, 'project' => $application->projectname, 'client' => $name, 'moves' => null, 'lastmove' => null]);
         }
-        return response()->json(['error'=>true,'message'=>'no hay creditos registradas.','credits'=>null]);
     }
     public function showCreditApprovedByApplication(Request $request,$id){
         $credit = App\approvedcredit::where('application',$id)->where('extends',$id)->get();
