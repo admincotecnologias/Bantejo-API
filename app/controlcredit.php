@@ -35,7 +35,7 @@ class controlcredit extends Model {
             'pay_iva_arrear'=>'required|numeric',
             'type_currency'=>'required|numeric',
             'currency'=>'required|string',
-            'typemove'=>'string|nullable',
+            'typemove'=>'required|string',
             'idref'=>'integer|nullable'
         ]
 	];
