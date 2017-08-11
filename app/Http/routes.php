@@ -9,9 +9,15 @@ use Illuminate\Http\Request;
 | It is a breeze. Simply tell Lumen the URIs it should respond to
 | and give it the Closure to call when that URI is requested.
 |
+
  /**
  * Routes for resource api_auth
  */
+
+use Carbon\Carbon;
+$app->get('Time',function(){
+    return Carbon::now();
+});
 $app->group(['prefix' => 'AdminAuth'], function() use ($app) {
     $app->post('LogIn', 'Api_authsController@AdminLogIn');
     $app->get('LogOut','Api_authsController@AdminLogOut');
@@ -268,7 +274,9 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
         $app->post('add', 'CreditsController@addCreditApproved');
         $app->post('add/pay','CreditsController@addCreditPay');
         $app->put('credits/{id}', 'CreditsController@put');
+        $app->put('update/{appId}/Liquidar','CreditsController@liquidate');
         $app->delete('credits/{id}', 'CreditsController@remove');
+        $app->delete('delete/{appId}/LastMove','CreditsController@deleteLastMove');
 
         $app->get('all/Solicitudes', 'ApplicationsController@all');
         $app->get('all/Clients/Solicitudes', 'ApplicationsController@ClientsToCredit');
@@ -277,6 +285,7 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
         $app->put('update/{id}/Solicitudes', 'ApplicationsController@update');
         $app->delete('delete/{id}/Solicitudes', 'ApplicationsController@delete');
         $app->get('report/{id}/Solicitudes', 'ApplicationsController@report');
+
 
 
         $app->post('add/FilesApplication', 'FilesController@add');

@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Log;
 
 class CreditsController extends Controller {
 
+    private $OK = 200;
+    private $FORBIDDEN = 403;
+    private $NOT_FOUND = 404;
+    private $SERVICE_NOT_AVAILABLE = 503;
+
+
     public function addCreditType(Request $request){
 
         $validator = Validator::make($request->all(), App\creditavailable::$rules);
@@ -18,7 +24,7 @@ class CreditsController extends Controller {
         }
         $credit = App\creditavailable::create($request->all());
         $credit->save();
-        return response()->json(['error'=>false,'message'=>'Credito Creado.','credit'=>$credit->id],200);
+        return response()->json(['error'=>false,'message'=>'Credito Creado.','credit'=>$credit->id],$this->OK);
     }
 
     public function allCreditTypes(){
@@ -71,7 +77,7 @@ class CreditsController extends Controller {
     public function addCreditApproved(Request $request){
         $validator = Validator::make($request->all(), App\approvedcredit::$rules['create']);
         if($validator->fails()){
-            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],200);
+            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],$this->OK);
         }else{
             $credit = App\approvedcredit::create($request->all());
             $credit->save();
@@ -140,7 +146,7 @@ class CreditsController extends Controller {
                 }
             }
             $application->save();
-            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id,'application'=>$application],200);
+            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id,'application'=>$application],$this->OK);
         }
     }
 
@@ -177,22 +183,59 @@ class CreditsController extends Controller {
         }
         $controlFund->save();
     }
+    public function liquidate($idApp){
+        $numCreditos =  App\approvedcredit::where('application', $idApp)->update(['status'=>'LIQUIDADO']);
+        if($numCreditos > 0){
+            return response()->json(['error'=>false,'message'=>'Credito liquidado','derp'=>$numCreditos],$this->OK);
+        }else{
+            return response()->json(['error'=>true,'message'=>'Solicitud no esta vinculada a ningun credito'],$this->NOT_FOUND);
+        }
+
+    }
     public function addCreditPay(Request $request){
         $validator = Validator::make($request->all(), App\controlcredit::$rules['create']);
         if($validator->fails()){
-            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],200);
+            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],$this->OK);
         }else{
             $credit = App\controlcredit::create($request->all());
             $credit->save();
             if($credit->capital_balance < .01 && $credit->type == 1){
                 $status = App\approvedcredit::where('id',$credit->credit)->first();
-                App\approvedcredit::where('application',$status->application)->update(['status' => 'Liquidado' ]);
+                App\approvedcredit::where('application',$status->application)->update(['status' => 'LIQUIDADO' ]);
 
             }
-            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],200);
+            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],$this->OK);
         }
     }
     public function addPay(Request $request){
+
+    }
+
+    public function deleteLastMove($idCredit){
+        $lastMove = App\controlcredit::where('credit',$idCredit)->orderBy('id','desc')->first();
+        if($lastMove == null){
+            return response()->json(['error'=>true,'message'=>'No existe un ultimo movimiento para este credito.'],$this->NOT_FOUND);
+        }
+        $credit = App\approvedcredit::where('id',$lastMove->credit)->first();
+        if($credit->status == "LIQUIDADO"){
+            return response()->json(['error'=>true,'message'=>'El credito especificado ya esta liquidado.'],$this->FORBIDDEN);
+        }
+        if($lastMove->typemove == "INICIAL"){
+            return response()->json(['error'=>true,'message'=>'No se puede eliminar el movimiento inicial'],$this->FORBIDDEN);
+        }
+        $limitDate = Carbon::parse($lastMove->created_at);
+        $today = Carbon::now();
+        if($limitDate->diffInHours($today) < 24){
+            $wasDeleted = $lastMove->forceDelete();
+            if($wasDeleted == 1){
+                return response()->json(['error'=>false,'message'=>'Ultimo movimiento eliminado'],$this->OK);
+            }else{
+                return response()->json(['error'=>true,'message'=>'Servidor no pudo procesar la peticion'],$this->SERVICE_NOT_AVAILABLE);
+            }
+
+        }else{
+            return response()->json(['error'=>true,'message'=>'Ultimo movimiento fue hace mas de un dia.'],$this->FORBIDDEN);
+        }
 
     }
 }
