@@ -8,7 +8,7 @@ class CreateStockAccountTable extends Migration
     
     public function up()
     {
-        Schema::create('StockAccount', function(Blueprint $table) {
+        Schema::create('stockaccount', function(Blueprint $table) {
             $table->increments('id');
             // Schema declaration
             $table->string('accounttype');
@@ -27,6 +27,6 @@ class CreateStockAccountTable extends Migration
 
     public function down()
     {
-        Schema::drop('StockAccount');
+        Schema::drop('stockaccount');
     }
 }

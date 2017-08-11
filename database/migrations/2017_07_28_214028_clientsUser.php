@@ -13,17 +13,21 @@ class ClientsUser extends Migration
      */
     public function up()
     {
-        Schema::create('clientsuser', function(Blueprint $table) {
-            $table->increments('id');
-            $table->integer('iduser')->unsigned()->nullable();
-            // Schema declaration
-            $table->string('email');
-            $table->string('password');
-            // Constraints declaration
-            $table->timestamps();
-            $table->softDeletes();
-            $table->foreign('iduser')->references('id')->on('users')->onDelete('set null');
-        });
+        //
+        if (!Schema::hasTable('clients_user')) {
+            Schema::create('clients_user', function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('name');
+                $table->string('email')->unique();
+                $table->string('password');
+                $table->string('api_token', 60)->unique();
+                $table->string('last_ip');
+                $table->date('last_connection');
+                $table->rememberToken();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**
@@ -33,6 +37,7 @@ class ClientsUser extends Migration
      */
     public function down()
     {
-        Schema::drop('clientsuser');
+        //
+        Schema::drop('clients_user');
     }
 }

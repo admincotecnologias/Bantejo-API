@@ -28,6 +28,9 @@ $app->group(['prefix' => 'ClientsAuth'], function() use ($app) {
     $app->get('LogOut','Api_authsController@ClientsLogOut');
 });
 
+
+$app->post('Register','UserController@addClient');
+
 $app->group(['prefix' => 'Clients','middleware'=>'ClientsApi'], function() use ($app) {
 
     /**
@@ -149,6 +152,7 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
         $app->put('update/{id}', 'UserController@update');
         $app->delete('delete/{id}', 'UserController@delete');
         $app->get('report/{id}', 'UserController@report');
+        $app->put('update/{clientId}/Cliente', 'UserController@confirmClient');
 
         $app->get('all/Permisos', 'PermissionsController@all');
         $app->post('add/Permisos','PermissionsController@add');

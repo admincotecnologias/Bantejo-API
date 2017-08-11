@@ -185,8 +185,7 @@ class Api_authsController extends Controller {
         if(!$data->has('password')){
             return response()->json(['error'=>true,'message'=>'Falta campo Password.']);
         }
-        $user = new App\User;
-        $user = App\User::where('email',$data->email)->get();
+        $user = App\Clients_user::where('email',$data->email)->get();
         if(!$user->isEmpty()){
             $user = App\User::where('email',$data->email)->first();
             if(password_verify($data->password, $user->password)){
@@ -195,7 +194,7 @@ class Api_authsController extends Controller {
                 $user->last_connection = Carbon::now();
                 $user->save();
                 $client = App\Client::where('iduser',$user->id)->first();
-                return response()->json(['error'=>false,'message'=>'LogIn correcto.', 'permissions' => $permissions, 'id' => $employee->id,'token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation->name]);
+                return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString()]);
             }
             else{
                 return response()->json(['error'=>true,'message'=>'Contraseña erronea.']);
