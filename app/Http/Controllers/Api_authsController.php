@@ -185,15 +185,15 @@ class Api_authsController extends Controller {
         if(!$data->has('password')){
             return response()->json(['error'=>true,'message'=>'Falta campo Password.']);
         }
-        $user = App\Clients_user::where('email',$data->email)->get();
+        $user = App\Clients_User::where('email',$data->email)->get();
         if(!$user->isEmpty()){
-            $user = App\User::where('email',$data->email)->first();
+            $user = App\Clients_User::where('email',$data->email)->first();
             if(password_verify($data->password, $user->password)){
                 $user->last_ip = $data->ip();
                 $user->api_token = str_random(60);
                 $user->last_connection = Carbon::now();
                 $user->save();
-                $client = App\Client::where('iduser',$user->id)->first();
+                $client = App\Clients_User::where('iduser',$user->id)->first();
                 return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString()]);
             }
             else{

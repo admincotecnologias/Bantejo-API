@@ -61,7 +61,7 @@ class CreditsController extends Controller {
         }
         $name = $client->businessname == null ? $client->name." ".$client->lastname : $client->businessname;
         if (!$credit->isEmpty()) {
-            return response()->json(['error'=>false,'message'=>'ok','lastCondition'=>$lastCondition,'credits'=>$credit,'project'=>$application->projectname,'client'=>$name,'moves'=>$moves,'lastmove'=>$lastMove]);
+            return response()->json(['error'=>false,'applicationid'=>$application->id,'message'=>'ok','lastCondition'=>$lastCondition,'credits'=>$credit,'project'=>$application->projectname,'client'=>$name,'moves'=>$moves,'lastmove'=>$lastMove]);
         }else {
             return response()->json(['error' => true, 'message' => 'no hay creditos registradas.','credits' => null, 'project' => $application->projectname, 'client' => $name, 'moves' => null, 'lastmove' => null]);
         }
