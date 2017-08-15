@@ -54,16 +54,16 @@ class CreditsController extends Controller {
         $application = App\Application::where('id',$credit->toArray()[0]['application'])->first();
         $client = App\Client::where('id',$application->idclient)->first(['businessname','name','lastname']);
         $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->whereRaw('controlcredits.credit=credits_approved.id')->orderBy('controlcredits.id', 'DESC')->first();
-        $lastCondition = App\approvedcredit::where('extends',$id)->orderBy('id','desc')->first();
+        $lastCondition = App\approvedcredit::where('application',$application->id)->orderBy('id','desc')->first();
         $moves = array();
         foreach ($credit as $data){
             $moves[(string)$data->id]=App\controlcredit::where('credit',$data->id)->get();
         }
         $name = $client->businessname == null ? $client->name." ".$client->lastname : $client->businessname;
         if (!$credit->isEmpty()) {
-            return response()->json(['error'=>false,'applicationid'=>$application->id,'message'=>'ok','lastCondition'=>$lastCondition,'credits'=>$credit,'project'=>$application->projectname,'client'=>$name,'moves'=>$moves,'lastmove'=>$lastMove]);
+            return response()->json(['error'=>false,'applicationID'=>$application->id,'message'=>'ok','lastCondition'=>$lastCondition,'credits'=>$credit,'project'=>$application->projectname,'client'=>$name,'moves'=>$moves,'lastMove'=>$lastMove]);
         }else {
-            return response()->json(['error' => true, 'message' => 'no hay creditos registradas.','credits' => null, 'project' => $application->projectname, 'client' => $name, 'moves' => null, 'lastmove' => null]);
+            return response()->json(['error' => true, 'message' => 'no hay creditos registradas.','credits' => null, 'project' => $application->projectname, 'client' => $name, 'moves' => null, 'lastMove' => null]);
         }
     }
     public function showCreditApprovedByApplication(Request $request,$id){
