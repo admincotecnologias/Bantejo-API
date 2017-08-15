@@ -59,6 +59,7 @@ class Kernel extends ConsoleKernel
                 }catch (\Exception $ex){
                     $lastMove = null;
                 }
+                Log::warning($lastMove);
                 if ($lastMove!= null) {
                     $startDate = Carbon::parse($credit->start_date);
                     $finalDate = Carbon::parse($credit->start_date)->addMonth(intval($credit->term));

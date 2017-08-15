@@ -75,7 +75,7 @@ class ApplicationsController extends Controller
         $creditaids = App\Creditaid::where('idapplication', $id)->get();
         $Files = App\Files::where('idapplication', $id)->get();
         $ApprovedCredit = App\creditavailable::all();
-        $Credit = App\approvedcredit::where('application',$id)->orWhere('extends',$id)->orderBy('start_date','DESC')->first();
+        $Credit = App\approvedcredit::where('application',$id)->orderBy('start_date','DESC')->first();
         if (!$application->isEmpty()) {
             $application = Application::where('id', $id)->first();
             return response()->json([
