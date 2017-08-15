@@ -18,6 +18,7 @@ class NPLRatio extends Migration
             Schema::create('npl_ratio', function(Blueprint $table) {
                 $table->increments('id');
                 // Schema declaration
+                $table->integer('idsample');
                 $table->integer('idclient')->nullable()->unsigned();
                 $table->integer('active_money');
                 $table->integer('grace_money');

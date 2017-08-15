@@ -18,6 +18,7 @@ class InterestNetIncome extends Migration
             Schema::create('interest_net_income', function(Blueprint $table) {
                 $table->increments('id');
                 // Schema declaration
+                $table->integer('idsample');
                 $table->integer('idclient')->unsigned()->nullable();
                 $table->integer('interest_net_income');
                 $table->foreign('idclient')->references('id')->on('clients')->onDelete('set null');

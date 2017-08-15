@@ -344,9 +344,9 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
     $app->group(['prefix' => 'Dashboard'], function() use ($app) {
         $app->get('show/Morosidad', 'DashboardsController@MorosidadTotal');
         $app->get('show/InteresNeto', 'DashboardsController@InteresesNeto');
-        $app->post('dashboard', 'DashboardsController@add');
-        $app->put('dashboard/{id}', 'DashboardsController@put');
-        $app->delete('dashboard/{id}', 'DashboardsController@remove');
+        $app->get('show/CarteraPromedio', 'DashboardsController@CarteraPromedio');
+        $app->get('show/DeudaPromedio', 'DashboardsController@DeudaPromedio');
+        $app->get('show/MargenFinanciero', 'DashboardsController@MargenFinanciero');
     });
 });
 
