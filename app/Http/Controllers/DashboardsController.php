@@ -17,44 +17,76 @@ class DashboardsController extends Controller {
     }
     public function MorosidadTotal(){
         $currentYear = Date('Y');
-        //Obtener los datos agrupados por numero de muestra
-        $samples= App\NPL_Ratio::where(DB::raw('YEAR(created_at)'), '=', "2017");
-        $samples = $samples->groupBy('idsample')->get();
-        if(!$samples->isEmpty()){
-            return response()->json(['error'=>false,'samples'=>$samples]);
-        }else{
+        //Obtener los datos de las muestras
+        $samples= App\NPL_Ratio::where(DB::raw('YEAR(created_at)'), '=', $currentYear)->get();
+        if($samples->isEmpty()){
             return response()->json(['error'=>true,'message'=>'No hay muestras de morosidad total.']);
         }
-
+        $filtered_samples = collect();
+        //Iteramos todas las muestras, y las filtramos por su ID de muestra
+        foreach($samples as $sample){
+            $sampleid = $sample->idsample;
+            if(!isset($filtered_samples[$sampleid])){
+                $filtered_samples[$sampleid] = collect();
+            }
+            $filtered_samples[$sampleid]->push($sample);
+        }
+        return response()->json(['error'=>false,'samples'=>$filtered_samples]);
     }
     public function InteresesNeto(){
         $currentYear = Date('Y');
-        $samples= App\Interest_Net_Income::where(DB::raw('YEAR(created_at)'), '=', $currentYear)->groupBy('idsample')->get();
-        if(!$samples->isEmpty()){
-            return response()->json(['error'=>false,'samples'=>$samples]);
-        }else{
-            return response()->json(['error'=>true,'message'=>'No hay muestras de intereses neto.']);
+        //Obtener los datos de las muestras
+        $samples= App\Interest_Net_Income::where(DB::raw('YEAR(created_at)'), '=', $currentYear)->get();
+        if($samples->isEmpty()){
+            return response()->json(['error'=>true,'message'=>'No hay muestras de morosidad total.']);
         }
+        $filtered_samples = collect();
+        //Iteramos todas las muestras, y las filtramos por su ID de muestra
+        foreach($samples as $sample){
+            $sampleid = $sample->idsample;
+            if(!isset($filtered_samples[$sampleid])){
+                $filtered_samples[$sampleid] = collect();
+            }
+            $filtered_samples[$sampleid]->push($sample);
+        }
+        return response()->json(['error'=>false,'samples'=>$filtered_samples]);
     }
     public function CarteraPromedio(){
         $currentYear = Date('Y');
-        $samples = App\Average_Money_Loaned::where(DB::raw('YEAR(created_at)'), '=', $currentYear)->groupBy('idsample')->get();
-        Log::warning($samples);
-        if(!$samples->isEmpty()){
-            return response()->json(['error'=>false,'samples'=>$samples]);
-        }else{
-            return response()->json(['error'=>true,'message'=>'No hay muestras de cartera promedio.']);
+        //Obtener los datos de las muestras
+        $samples= App\Average_Money_Loaned::where(DB::raw('YEAR(created_at)'), '=', $currentYear)->get();
+        if($samples->isEmpty()){
+            return response()->json(['error'=>true,'message'=>'No hay muestras de morosidad total.']);
         }
+        $filtered_samples = collect();
+        //Iteramos todas las muestras, y las filtramos por su ID de muestra
+        foreach($samples as $sample){
+            $sampleid = $sample->idsample;
+            if(!isset($filtered_samples[$sampleid])){
+                $filtered_samples[$sampleid] = collect();
+            }
+            $filtered_samples[$sampleid]->push($sample);
+        }
+        return response()->json(['error'=>false,'samples'=>$filtered_samples]);
     }
-
     public function DeudaPromedio(){
         $currentYear = Date('Y');
-        $samples = App\Average_Money_Borrowed::where(DB::raw('YEAR(created_at)'), '=', $currentYear)->groupBy('idsample')->get();
-        if(!$samples->isEmpty()){
-            return response()->json(['error'=>false,'samples'=>$samples]);
-        }else{
-            return response()->json(['error'=>true,'message'=>'No hay muestras de deuda promedio.']);
+        //Obtener los datos de las muestras
+        $samples= App\Average_Money_Borrowed::where(DB::raw('YEAR(created_at)'), '=', $currentYear)->get();
+        if($samples->isEmpty()){
+            return response()->json(['error'=>true,'message'=>'No hay muestras de morosidad total.']);
         }
+        $filtered_samples = collect();
+        //Iteramos todas las muestras, y las filtramos por su ID de muestra
+        foreach($samples as $sample){
+            $sampleid = $sample->idsample;
+            if(!isset($filtered_samples[$sampleid])){
+                $filtered_samples[$sampleid] = collect();
+            }
+            $filtered_samples[$sampleid]->push($sample);
+        }
+        return response()->json(['error'=>false,'samples'=>$filtered_samples]);
     }
+
 
 }
