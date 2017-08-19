@@ -54,7 +54,9 @@ class DashboardsController extends Controller {
     public function CarteraPromedio(){
         $currentYear = Date('Y');
         //Obtener los datos de las muestras
-        $samples= App\Average_Money_Loaned::where(DB::raw('YEAR(created_at)'), '=', $currentYear)->get();
+        $samples= App\Average_Money_Loaned::where(DB::raw('YEAR(average_money_loaned.created_at)'), '=', $currentYear)
+            ->leftJoin('users','users.id','=','average_money_loaned.idclient')->
+            select('average_money_loaned.*','users.name')->get();
         if($samples->isEmpty()){
             return response()->json(['error'=>true,'message'=>'No hay muestras de morosidad total.']);
         }
