@@ -59,6 +59,7 @@ class Kernel extends ConsoleKernel
                 }catch (\Exception $ex){
                     $lastMove = null;
                 }
+                Log::warning($lastMove);
                 if ($lastMove!= null) {
                     $startDate = Carbon::parse($credit->start_date);
                     $finalDate = Carbon::parse($credit->start_date)->addMonth(intval($credit->term));
@@ -100,13 +101,13 @@ class Kernel extends ConsoleKernel
                     //--Cantidad activa
                     //--cantidad en dias de gracia
                     //--Cantidad expirada
-                    if($newDate->lessThan($finalDate)){
+                    if($newDate->lt($finalDate)){
                         $npl_ratio[$application->idclient]->active_money+=$move->capital_balance;
                     }
-                    if($newDate->greaterThan($finalDate)&& $newDate->lessThan($graceDate)){
+                    if($newDate->gt($finalDate)&& $newDate->lt($graceDate)){
                         $npl_ratio[$application->idclient]->grace_money+=$move->capital_balance;
                     }
-                    if($newDate->greaterThan($graceDate)){
+                    if($newDate->gt($graceDate)){
                         $npl_ratio[$application->idclient]->expired_money+=$move->capital_balance;
                     }
                     //Inicializando intereses por cliente en interes balance, si no lo tiene
@@ -166,9 +167,15 @@ class Kernel extends ConsoleKernel
 
             //Calculando valores para la tabla "Ingreso de intereses neto"
             try{
+                //Calculamos el ID de muestra
+                $idsample = App\Interest_Net_Income::all();
+                if($idsample->isEmpty()) $idsample = 1; //1, si es la primera muestra que se calcula
+                else $idsample = $idsample->max('idsample')+1; //ultimaMuestra + 1, si ya hay muestras
                 //Iteramos cada cliente, y la sumatoria de sus intereses, para meterlos a la tabla
+
                 foreach ($total_money_loaned as $client => $interest_net_income){
                     $newEntry = new App\Interest_Net_Income();
+                    $newEntry->idsample = $idsample;
                     $newEntry->idclient = $client;
                     $newEntry->interest_net_income = $interest_net_income;
                     $newEntry->save();
@@ -180,9 +187,13 @@ class Kernel extends ConsoleKernel
 
             //Calculando valores para la tabla "Indice de morosidad"
             try{
+                $idsample = App\NPL_Ratio::all();
+                if($idsample->isEmpty()) $idsample = 1;
+                else $idsample = $idsample->max('idsample')+1;
                 //Iteramos cada cliente, y sus tres cantidades de dinero que deben, para meterlos a la tabla
                 foreach ($npl_ratio as $client => $total_money){
                     $newEntry = new App\NPL_Ratio();
+                    $newEntry->idsample = $idsample;
                     $newEntry->idclient = $client;
                     $newEntry->active_money = $total_money->active_money;
                     $newEntry->grace_money = $total_money->grace_money;

@@ -193,7 +193,7 @@ class Api_authsController extends Controller {
                 $user->api_token = str_random(60);
                 $user->last_connection = Carbon::now();
                 $user->save();
-               // $client = App\Client::where('iduser',$user->id)->first();
+                $client = App\Clients_User::where('iduser',$user->id)->first();
                 return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString()]);
             }
             else{

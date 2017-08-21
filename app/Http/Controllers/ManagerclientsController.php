@@ -36,7 +36,7 @@ class ManagerclientsController extends Controller {
 			'lastname' => 'required|max:255',
 			'rfc' => 'required|max:255|min:12|max:13',
 			'idclient' => 'required|integer|exists:clients,id',
-			'idfile' => 'required|integer|exists:files,id',
+			'idfile' => 'required|integer|exists:filesclient,id',
         ]);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
