@@ -82,6 +82,7 @@ class PermissionsController extends Controller {
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
+        $user = App\User::where('api_token',$request->header('token'))->get();
         $permission = App\Permission::where('id',$id)->get();
         if(!$user->isEmpty()){
             try {

@@ -17,15 +17,15 @@ class ClientBank extends Model {
             'accounttype' => 'required|max:255',
             'accountnumber' => 'required|max:11',
             'clabe' => 'required|max:20',
-            'idclient' => 'required|integer',
-            'idbank' => 'required|integer',
+            'idclient' => 'required|integer|exists:clients,id',
+            'idbank' => 'required|integer|exists:banks,id',
         ],
         'update'=>[
             'accounttype' => 'max:255',
             'accountnumber' => 'required|max:11',
             'clabe' => 'required|max:18',
-            'idclient' => 'integer',
-            'idbank' => 'integer',
+            'idclient' => 'integer|exists:clients,id',
+            'idbank' => 'integer|exists:banks,id',
         ]
     ];
     //Appends

@@ -23,8 +23,10 @@ class CreateFundTable extends Migration
             $table->string('todo'); // Para que se usara el capital
             $table->string('status'); // Status del credito
             $table->integer('extends')->unsigned()->nullable(); //Credito indica si es modificado y siempre hace referencia al creidito inicial
+            $table->integer('fileid')->nullable(); // id de archivo relacionado a la disposicion
             // Constraints declaration
             $table->timestamps();
+
             $table->softDeletes();
 
             $table->foreign('idstock')->references('id')->on('stockholder')->onDelete('set null');

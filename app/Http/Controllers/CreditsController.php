@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Log;
 
 class CreditsController extends Controller {
 
+    private $OK = 200;
+    private $FORBIDDEN = 403;
+    private $NOT_FOUND = 404;
+    private $SERVICE_NOT_AVAILABLE = 503;
+
+
     public function addCreditType(Request $request){
 
         $validator = Validator::make($request->all(), App\creditavailable::$rules);
@@ -18,7 +24,7 @@ class CreditsController extends Controller {
         }
         $credit = App\creditavailable::create($request->all());
         $credit->save();
-        return response()->json(['error'=>false,'message'=>'Credito Creado.','credit'=>$credit->id],200);
+        return response()->json(['error'=>false,'message'=>'Credito Creado.','credit'=>$credit->id],$this->OK);
     }
 
     public function allCreditTypes(){
@@ -30,27 +36,35 @@ class CreditsController extends Controller {
         return response()->json(['error'=>true,'message'=>'no hay creditos registradas.','credits'=>null]);
     }
     public function allCreditApproved(){
-        $credit = App\approvedcredit::select('credits_approved.*','applications.projectname','clients.businessname')->join('applications','credits_approved.application','=','applications.id')->leftjoin('clients','applications.idclient','=','clients.id')->where('credits_approved.extends',null)->get();
+        $credit = App\approvedcredit::select('credits_approved.*','applications.projectname','clients.businessname','clients.name','clients.lastname')->join('applications','credits_approved.application','=','applications.id')->leftjoin('clients','applications.idclient','=','clients.id')->where('credits_approved.extends',null)->get();
         if(!$credit->isEmpty())
         {
             return response()->json(['error'=>false,'message'=>'ok','credits'=>$credit]);
         }
         return response()->json(['error'=>true,'message'=>'no hay creditos registradas.','credits'=>null]);
     }
-    public function showCreditApproved(Request $request,$id){
+
+    /**
+     * @param Request $request
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function showCreditApproved(Request $request, $id){
         $credit = App\approvedcredit::where('id',$id)->orWhere('extends', $id)->orderBy('start_date', 'asc')->get();
         $application = App\Application::where('id',$credit->toArray()[0]['application'])->first();
-        $name = App\Client::where('id',$application->idclient)->first(['businessname']);
-        $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->whereRaw('controlcredits.credit=credits_approved.id')->orderBy('controlcredits.period', 'DESC')->first();
+        $client = App\Client::where('id',$application->idclient)->first(['businessname','name','lastname']);
+        $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->whereRaw('controlcredits.credit=credits_approved.id')->orderBy('controlcredits.id', 'DESC')->first();
+        $lastCondition = App\approvedcredit::where('application',$application->id)->orderBy('id','desc')->first();
         $moves = array();
         foreach ($credit as $data){
             $moves[(string)$data->id]=App\controlcredit::where('credit',$data->id)->get();
         }
-        if(!$credit->isEmpty())
-        {
-            return response()->json(['error'=>false,'message'=>'ok','credits'=>$credit,'project'=>$application->projectname,'client'=>$name->businessname,'moves'=>$moves,'lastmove'=>$lastMove]);
+        $name = $client->businessname == null ? $client->name." ".$client->lastname : $client->businessname;
+        if (!$credit->isEmpty()) {
+            return response()->json(['error'=>false,'applicationID'=>$application->id,'message'=>'ok','lastCondition'=>$lastCondition,'credits'=>$credit,'project'=>$application->projectname,'client'=>$name,'moves'=>$moves,'lastMove'=>$lastMove]);
+        }else {
+            return response()->json(['error' => true, 'message' => 'no hay creditos registradas.','credits' => null, 'project' => $application->projectname, 'client' => $name, 'moves' => null, 'lastMove' => null]);
         }
-        return response()->json(['error'=>true,'message'=>'no hay creditos registradas.','credits'=>null]);
     }
     public function showCreditApprovedByApplication(Request $request,$id){
         $credit = App\approvedcredit::where('application',$id)->where('extends',$id)->get();
@@ -63,7 +77,7 @@ class CreditsController extends Controller {
     public function addCreditApproved(Request $request){
         $validator = Validator::make($request->all(), App\approvedcredit::$rules['create']);
         if($validator->fails()){
-            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],200);
+            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],$this->OK);
         }else{
             $credit = App\approvedcredit::create($request->all());
             $credit->save();
@@ -80,6 +94,7 @@ class CreditsController extends Controller {
                 $move->interest_arrear_balance = 0;
                 $move->interest_arrear_iva_balance = 0;
                 $move->currency = $credit->currency;
+                $move->typemove = "INICIAL";
                 $move->save();
             }
             if($credit->extends != null && $credit->type == 2){
@@ -106,6 +121,10 @@ class CreditsController extends Controller {
                     }
                     $move->capital_balance = floatval($credit->amount) + floatval($lastMove->capital_balance);
                     $move->currency = $credit->currency;
+                    if($request->has("idref")){
+                        $move->idref = $request->input("idref");
+                    }
+                    $move->typemove = $request->typemove;
                     $move->save();
                 }
                 else{
@@ -118,29 +137,105 @@ class CreditsController extends Controller {
                     $move->interest_arrear_balance = 0;
                     $move->interest_arrear_iva_balance = 0;
                     $move->currency = $credit->currency;
+                    if($request->has("idref")){
+                        $move->idref = $request->input("idref");
+                    }
+
+                    $move->typemove = $request->typemove;
                     $move->save();
                 }
             }
             $application->save();
-            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],200);
+            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id,'application'=>$application],$this->OK);
         }
+    }
+
+
+/*
+    public function updateControlFundFile($idControlFund,$idFile){
+        $controlFund = App\Control_Fund::where('id',$idControlFund)->get();
+        //$controlFund->fileid = $idFile;
+        if(!$controlFund->isEmpty()){
+            try {
+                $controlFund = App\Control_Fund::where('id',$idControlFund)->find($idControlFund);
+                $controlFund->idfile = $idFile;
+                $controlFund->save();
+                return response()->json(['error'=>false,'message'=>'Disposicion actualizada correctamente']);
+            } catch (Exception $e) {
+                return response()->json(['error'=>false,'message'=>'Disposicion no se pudo actualizar.','errors'=>$e->getMessage()]);
+            }
+        }
+        $controlFund->save();
+    }
+*/
+    public function updateCreditFile($idCredit,$idFile){
+        $controlFund = App\controlcredit::where('id',$idCredit)->get();
+        //$controlFund->fileid = $idFile;
+        if(!$controlFund->isEmpty()){
+            try {
+                $controlFund = App\controlcredit::where('id',$idCredit)->find($idCredit);
+                $controlFund->idfile = $idFile;
+                $controlFund->save();
+                return response()->json(['error'=>false,'message'=>'Movimiento actualizado correctamente']);
+            } catch (\Exception $e) {
+                return response()->json(['error'=>false,'message'=>'Movimiento no se pudo actualizar.','errors'=>$e->getMessage()]);
+            }
+        }
+        $controlFund->save();
+    }
+    public function liquidate($idApp){
+        $numCreditos =  App\approvedcredit::where('application', $idApp)->update(['status'=>'LIQUIDADO']);
+        if($numCreditos > 0){
+            return response()->json(['error'=>false,'message'=>'Credito liquidado','derp'=>$numCreditos],$this->OK);
+        }else{
+            return response()->json(['error'=>true,'message'=>'Solicitud no esta vinculada a ningun credito'],$this->NOT_FOUND);
+        }
+
     }
     public function addCreditPay(Request $request){
         $validator = Validator::make($request->all(), App\controlcredit::$rules['create']);
         if($validator->fails()){
-            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],200);
+            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],$this->OK);
         }else{
             $credit = App\controlcredit::create($request->all());
             $credit->save();
-            if($credit->capital_balance < .01){
+            if($credit->capital_balance < .01 && $credit->type == 1){
                 $status = App\approvedcredit::where('id',$credit->credit)->first();
-                App\approvedcredit::where('application',$status->application)->update(['status' => 'Liquidado' ]);
+                App\approvedcredit::where('application',$status->application)->update(['status' => 'LIQUIDADO' ]);
 
             }
-            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],200);
+            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],$this->OK);
         }
     }
     public function addPay(Request $request){
+
+    }
+
+    public function deleteLastMove($idCredit){
+        $lastMove = App\controlcredit::where('credit',$idCredit)->orderBy('id','desc')->first();
+        if($lastMove == null){
+            return response()->json(['error'=>true,'message'=>'No existe un ultimo movimiento para este credito.'],$this->NOT_FOUND);
+        }
+        $credit = App\approvedcredit::where('id',$lastMove->credit)->first();
+        if($credit->status == "LIQUIDADO"){
+            return response()->json(['error'=>true,'message'=>'El credito especificado ya esta liquidado.'],$this->FORBIDDEN);
+        }
+        if($lastMove->typemove == "INICIAL"){
+            return response()->json(['error'=>true,'message'=>'No se puede eliminar el movimiento inicial'],$this->FORBIDDEN);
+        }
+        $limitDate = Carbon::parse($lastMove->created_at);
+        $today = Carbon::now();
+        if($limitDate->diffInHours($today) < 24){
+            $wasDeleted = $lastMove->forceDelete();
+            if($wasDeleted == 1){
+                return response()->json(['error'=>false,'message'=>'Ultimo movimiento eliminado'],$this->OK);
+            }else{
+                return response()->json(['error'=>true,'message'=>'Servidor no pudo procesar la peticion'],$this->SERVICE_NOT_AVAILABLE);
+            }
+
+        }else{
+            return response()->json(['error'=>true,'message'=>'Ultimo movimiento fue hace mas de un dia.'],$this->FORBIDDEN);
+        }
 
     }
 }

@@ -31,6 +31,8 @@ class CreateControlFundsTable extends Migration
             $table->double('pay_iva_arrear')->default(0); // pago al iva moratorio
             $table->float('type_currency')->default(1); // tipo de cambio si existe
             $table->string('currency')->default('MXN'); // tipo de cambio si existe
+            $table->integer('fileid')->nullable();
+            $table->integer('credit_type');
             // Constraints declaration
             $table->foreign('credit')->references('id')->on('fund')->onDelete('set null');
             $table->timestamps();

@@ -35,6 +35,11 @@ class OccupationsController extends Controller {
             'name' => 'required|max:255|unique:occupations',
         ]);
         if ($validator->fails()) {
+            $failed = $validator->failed();
+                if(isset($failed['name']['Unique'])){
+                App\Occupation::where('name',$data['name'])->restore();
+                return response()->json(['error'=>false,'message'=>'campo restaurado.']);
+            }
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
         else{  

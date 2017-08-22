@@ -79,6 +79,9 @@ class CreditStockholdersController extends Controller {
         }else{
             $fund = App\Control_Fund::create($request->all());
             $fund->save();
+            if($fund->capital_balance < 0.10){
+                $fund->status = 'Liquidado';
+            }
             if($fund->id>0){
                 return response()->json(['error'=>false,
                     'message'=>'Creado.',
@@ -105,9 +108,41 @@ class CreditStockholdersController extends Controller {
             'stock' => $stockholder]);
         }
     }
+
+    public function updateControlFundFile($idControlFund,$idFile){
+        $controlFund = App\Control_Fund::where('id',$idControlFund)->get();
+        //$controlFund->fileid = $idFile;
+        if(!$controlFund->isEmpty()){
+            try {
+                $controlFund = App\Control_Fund::where('id',$idControlFund)->find($idControlFund);
+                $controlFund->fileid = $idFile;
+                $controlFund->save();
+                return response()->json(['error'=>false,'message'=>'Disposicion actualizada correctamente']);
+            } catch (Exception $e) {
+                return response()->json(['error'=>false,'message'=>'Disposicion no se pudo actualizar.','errors'=>$e->getMessage()]);
+            }
+        }
+        $controlFund->save();
+    }
+    public function updateFundFile($idFund,$idFile){
+        $controlFund = App\fund::where('id',$idFund)->get();
+        //$controlFund->fileid = $idFile;
+        if(!$controlFund->isEmpty()){
+            try {
+                $controlFund = App\fund::where('id',$idFund)->find($idFund);
+                $controlFund->fileid = $idFile;
+                $controlFund->save();
+                return response()->json(['error'=>false,'message'=>'Disposicion actualizada correctamente']);
+            } catch (Exception $e) {
+                return response()->json(['error'=>false,'message'=>'Disposicion no se pudo actualizar.','errors'=>$e->getMessage()]);
+            }
+        }
+        $controlFund->save();
+    }
     public function getCtrlByIDStockholder ($idStock,$id,Request $request){
+
         $funds = App\fund::where('id',$id)->orWhere('extends',$id)->get();
-        $ctrl = App\Control_Fund::where('credit',$id)->orderBy('period','ASC')->get();
+        $ctrl = App\Control_Fund::where('credit',$id)->withTrashed()->orderBy('period','ASC')->get();
         $stockholder = App\Stockholder::where('id',$idStock)->first();
         if($ctrl->count()>0){
             return response()->json(['error'=>false,

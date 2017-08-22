@@ -6,7 +6,7 @@ use App\Http\Controllers\Api_authsController as Api_authsController;
 
 use Closure;
 
-class ApiMiddleware
+class ApiAdminMiddleware
 {
     /**
      * Handle an incoming request.

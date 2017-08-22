@@ -38,7 +38,7 @@ class approvedcredit extends Model {
     protected $appends = ['lastmove','vencimiento','intereses'];
     public function getLastmoveAttribute(){
         try{
-            $move = controlcredit::where('credit',$this->id)->orderBy('period','DESC')->firstOrFail();
+            $move = controlcredit::where('credit',$this->id)->orderBy('id','DESC')->firstOrFail();
         }catch (\Exception $ex){
             if($this->type==1){
                 return $this->amount;

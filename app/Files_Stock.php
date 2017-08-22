@@ -14,9 +14,7 @@ class Files_Stock extends Model {
 
 	protected $dates = ['deleted_at',];
 
-	public static $rules = [
-		// Validation rules
-	];
+
 
 	// Relationships
 

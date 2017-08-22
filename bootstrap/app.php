@@ -64,8 +64,11 @@ $app->singleton(
 */
 
  $app->routeMiddleware([
-   'Api' => App\Http\Middleware\ApiMiddleware::class
+   'AdminApi' => App\Http\Middleware\ApiAdminMiddleware::class
  ]);
+$app->routeMiddleware([
+    'ClientsApi' => App\Http\Middleware\ApiClientsMiddleware::class
+]);
 $app->Middleware([
    App\Http\Middleware\CorsMiddleware::class
  ]);
@@ -102,5 +105,6 @@ $app->register(\Barryvdh\DomPDF\ServiceProvider::class);
 $app->group(['namespace' => 'App\Http\Controllers'], function ($app) {
     require __DIR__.'/../app/Http/routes.php';
 });
+app('translator')->setLocale('es');
 
 return $app;

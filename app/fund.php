@@ -1,7 +1,7 @@
 <?php
 namespace App;
 use App\Control_Fund;
-use App\fund;
+//use App\fund;
 use Carbon\Carbon;
 use Illuminate\Contracts\Logging\Log;
 use Illuminate\Database\Eloquent\Model;

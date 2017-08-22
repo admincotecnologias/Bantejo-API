@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
 use App\User;
 use Validator;
+use Illuminate\Auth\Authenticatable;
+use Laravel\Lumen\Auth\Authorizable;
 
 class UserController extends Controller
 {
@@ -58,6 +60,42 @@ class UserController extends Controller
             return response()->json(['error'=>false,'message'=>'usuario agregado correctamente.','id'=>$user->id]);
         }
     }
+
+    public function addClient(Request $data)
+    {
+        $validator = Validator::make($data->all(), [
+            'name' => 'required|max:255',
+            'email' => 'required|email|max:255|unique:users',
+            'password' => 'required|min:6|confirmed',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
+        }
+        else{
+            $user = new App\Clients_User;
+            $user->name = $data['name'];
+            $user->password = bcrypt($data['password']);
+            $user->email = $data['email'];
+            $user->api_token = str_random(60);
+            $user->last_connection = Carbon::now();
+            $user->last_ip = str_random(15);
+            $user->save();
+            $id = $user->id;
+            $user->delete();
+            return response()->json(['error'=>false,'message'=>'usuario cliente agregado correctamente.','id'=>$id],200);
+        }
+    }
+
+    public function confirmClient($clientId)
+    {
+        $user = App\Clients_User::where('id',$clientId)->withTrashed()->first();
+        if($user == null){
+            return response()->json(['error'=>true,'message'=>'Usuario no existe'],404);
+        }
+        $user->restore();
+        return response()->json(['error'=>false,'message'=>'usuario cliente confirmado correctamente.'],200);
+    }
+
     public function delete($id)
     {
         # code...

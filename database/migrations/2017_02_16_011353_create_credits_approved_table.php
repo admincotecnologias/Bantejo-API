@@ -29,7 +29,7 @@ class CreateCreditsApprovedTable extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('type')->references('id')->on('credits_Available')->onDelete('set null');
+            $table->foreign('type')->references('id')->on('credits_available')->onDelete('set null');
             $table->foreign('application')->references('id')->on('applications')->onDelete('set null');
         });
     }
