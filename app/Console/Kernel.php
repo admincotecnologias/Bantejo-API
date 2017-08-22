@@ -61,13 +61,15 @@ class Kernel extends ConsoleKernel
                 }
                 Log::warning($lastMove);
                 if ($lastMove!= null) {
-                    $startDate = Carbon::parse($credit->start_date);
+                    $lastMoveDate = Carbon::parse($lastMove->period);
                     $finalDate = Carbon::parse($credit->start_date)->addMonth(intval($credit->term));
                     $graceDate = Carbon::parse($credit->start_date)->addMonth(intval($credit->term))->addDays(
                         intval($credit->grace_days));
                     $newDate = Carbon::now();
-                    $dateDif = $startDate->diffInDays($newDate);
-                    $dateDifGrace = $newDate->diffInDays($graceDate);
+                    $dateDif = $lastMoveDate->diffInDays($newDate);
+                    $dateDifGrace = $dateDif;//$newDate->diffInDays($graceDate);
+                    //$dateDif = $lastMoveDate->diffInDays($newDate);
+                    //$dateDifGrace = $newDate->diffInDays($graceDate);
                     $move = new App\controlcredit();
                     $move->credit = $credit->id;
                     $move->period = $newDate;
@@ -111,11 +113,6 @@ class Kernel extends ConsoleKernel
                         $npl_ratio[$application->idclient]->expired_money+=$move->capital_balance;
                     }
                     //Inicializando intereses por cliente en interes balance, si no lo tiene
-                    if(!isset($income_net_interest[$application->idclient])){
-                        $income_net_interest[$application->idclient]=$move->interest_balance;
-                    }else{//Si lo tiene, lo agregamos a una sumatoria
-                        $income_net_interest[$application->idclient]+=$move->interest_balance;
-                    }
 
 
                     if ($newDate->timestamp > $graceDate->timestamp) {
@@ -126,6 +123,13 @@ class Kernel extends ConsoleKernel
                     } else {
                         $move->interest_arrear_balance = 0;
                         $move->interest_arrear_iva_balance = 0;
+                    }
+                    if(!isset($income_net_interest[$application->idclient])){
+                        $income_net_interest[$application->idclient]=$move->capital_balance+$move->interest_balance
+                            +$move->interest_arrear_balance+$move->interest_arrear_iva_balance+$move->iva_balance;
+                    }else{//Si lo tiene, lo agregamos a una sumatoria
+                        $income_net_interest[$application->idclient]+=$move->capital_balance+$move->interest_balance
+                            +$move->interest_arrear_balance+$move->interest_arrear_iva_balance+$move->iva_balance;
                     }
                     $move->currency = $credit->currency;
                     $move->save();
@@ -217,12 +221,11 @@ class Kernel extends ConsoleKernel
                     $lastMove = null;
                 }
                 if ($lastMove!= null) {
-                    $startDate = Carbon::parse($fund->start_date);
-                    $finalDate = Carbon::parse($fund->start_date)->addMonth(intval($fund->term));
-                    $graceDate = Carbon::parse($fund->start_date)->addMonth(intval($fund->term))->addDays(intval($fund->grace_days));
+                    $lastMovePeriod = Carbon::parse($lastMove->period);
+                    $graceDate = Carbon::parse($lastMove->period)->addMonth(intval($fund->term))->addDays(intval($fund->grace_days));
                     $newDate = Carbon::now();
-                    $dateDif = $startDate->diffInDays($newDate);
-                    $dateDifGrace = $newDate->diffInDays($graceDate);
+                    $dateDif = $lastMovePeriod->diffInDays($newDate);
+                    $dateDifGrace = $dateDif;//$newDate->diffInDays($graceDate);
                     $move = new App\Control_Fund();
                     $move->credit = $fund->id;
                     $move->period = $newDate;
@@ -240,11 +243,7 @@ class Kernel extends ConsoleKernel
                     $move->iva_balance = ($move->interest_balance * ($fund->iva / 100));
                     $move->interest = $move->interest_balance;
                     $move->iva = $move->iva_balance;
-                    if(!isset($total_money_borrowed[$fund->idstock])){
-                        $total_money_borrowed[$fund->idstock] = $move->capital_balance;
-                    }else{
-                        $total_money_borrowed[$fund->idstock] += $move->capital_balance;
-                    }
+
 
                     if ($newDate->timestamp > $graceDate->timestamp) {
                         $move->interest_arrear_balance = $lastMove->interest_arrear_balance + ((($fund->interest_arrear / 100 / 365) * $dateDifGrace) * ($move->capital_balance + $move->interest_balance));
@@ -256,6 +255,13 @@ class Kernel extends ConsoleKernel
                         $move->interest_arrear_iva_balance = 0;
                     }
                     $move->currency = $fund->currency;
+                    if(!isset($total_money_borrowed[$fund->idstock])){
+                        $total_money_borrowed[$fund->idstock] = $move->capital_balance+$move->interest_balance
+                            +$move->interest_arrear_balance+$move->interest_arrear_iva_balance+$move->iva_balance;
+                    }else{
+                        $total_money_borrowed[$fund->idstock] += $move->capital_balance+$move->interest_balance
+                            +$move->interest_arrear_balance+$move->interest_arrear_iva_balance+$move->iva_balance;
+                    }
                     $move->save();
                 }
                 unset($lastMove);
