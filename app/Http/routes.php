@@ -343,10 +343,16 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
      */
     $app->group(['prefix' => 'Dashboard'], function() use ($app) {
         $app->get('show/Morosidad', 'DashboardsController@MorosidadTotal');
-        $app->get('show/InteresNeto', 'DashboardsController@InteresesNeto');
+        $app->get('show/InteresNeto', 'DashboardsController@InteresNeto');
         $app->get('show/CarteraPromedio', 'DashboardsController@CarteraPromedio');
         $app->get('show/DeudaPromedio', 'DashboardsController@DeudaPromedio');
         $app->get('show/MargenFinanciero', 'DashboardsController@MargenFinanciero');
+
+        $app->post('show/MargenFinancieroFechas', 'DashboardsController@MargenFinancieroFechas');
+        $app->post('show/InteresNetoFechas', 'DashboardsController@InteresNetoFechas');
+        $app->post('show/CarteraPromedioFechas', 'DashboardsController@CarteraPromedioFechas');
+        $app->post('show/DeudaPromedioFechas', 'DashboardsController@DeudaPromedioFechas');
+        $app->post('show/MorosidadFechas', 'DashboardsController@MorosidadTotalFechas');
     });
 });
 
