@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-
+use App\Http\Controllers\FilesController;
 
 class CreditsController extends Controller {
 
@@ -208,16 +208,78 @@ class CreditsController extends Controller {
         }
     }
     public function addAnalysis(Request $request){
-        $validator = Validator::make($request->analysis, App\CreditAnalysis::$rules['create']);
+        if(!$request->has('analisis')){
+            return response()->json(['error'=>true,'message'=>'Query mal formado'],$this->OK);
+        }
+        $validator = Validator::make($request->input('analisis'), App\CreditAnalysis::$rules['create']);
         if($validator->fails()){
             return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],$this->OK);
         }else {
-            $analysis = App\CreditAnalysis::create($request->analysis);
+            $analysis = App\CreditAnalysis::create($request->input('analisis'));
             $analysis->save();
-            return response()->json(['error'=>false,'message'=>'Analisis agregado correctamente','analisis',$analysis]);
+            return response()->json(['error'=>false,'message'=>'Analisis agregado correctamente','analisisid'=>$analysis->id],$this->OK);
         }
     }
+    public function addAnalysisFile(Request $request,$analysisid){
+        if(!$request->has('idapplication')){
+            return response()->json(['error'=>true,'message'=>'Se necesita un ID de aplicacion']);
+        }
+        $FC = new FilesController();
+        //$filesRequest = new Request();
+        //$filesRequest->replace(['idapplication'=>$request->input('applicationid'),]);
+        $response = $FC->add($request);
+        $data = $response->getData();
+        if(!$data->error){
+            $AF = collect();
+            $AF=['analysisid'=>$analysisid,'fileid'=>$data->file->id];
+            $analysisFile = App\AnalysisFiles::create($AF);
+            $analysisFile->save();
+        }
+        return $response;
+    }
+    public function removeAnalysisFile($analysisid){
 
+        $analysisFile = App\AnalysisFiles::where('analysisid',$analysisid)->first();
+        if(!$analysisFile){
+            return response()->json(['error'=>true,'message'=>'Analisis no existe'],200);
+        }
+        $FC = new FilesController();
+        $fileResponse = $FC->DeleteFile($analysisFile->fileid);
+        $data = $fileResponse->getData();
+        if(!$data->error){
+           $analysisFile->delete();
+        }
+        return $fileResponse;
+    }
+
+    public function getAnalysis($applicationid){
+        $creditAnalysis = App\CreditAnalysis::where('applicationid',$applicationid)->get();
+        if($creditAnalysis->isEmpty()){
+            return response()->json(['error'=>true,'message'=>'No existe analisis']);
+        }
+        $analysis=[];
+        $index = 0;
+        //$analysis->push('error'=>'error');
+        foreach($creditAnalysis as $ANL){
+            $analysisFiles = App\AnalysisFiles::where('analysisid',$ANL->id)->get();
+            $files = collect();
+            $FC = new FilesController();
+            $currentFileIndex = 1;
+            foreach($analysisFiles as $AF){
+                $fileResponse = $FC->ReturnFile($AF->fileid,new Request());
+                $files[$currentFileIndex]=$fileResponse->getData();
+                Log::warning($fileResponse->getData()->filepath);
+                $currentFileIndex++;
+            }
+            $derp = collect();
+            $derp['files']=$files;
+            $derp['observacion']=$ANL->observation;
+            $derp['analysisid']=$ANL->id;
+            $analysis[$index] = ($derp);
+            $index++;
+        }
+        return response()->json(['error'=>false,'analisis'=>$analysis]);
+    }
     public function deleteLastMove($idCredit){
         $lastMove = App\controlcredit::where('credit',$idCredit)->orderBy('id','desc')->first();
         if($lastMove == null){
