@@ -43,7 +43,7 @@ class DashboardsController extends Controller {
             }
             $filtered_samples[$sampleid]->push($sample);
         }
-        return response()->json(['error'=>false,'samples'=>$filtered_samples]);
+        return response()->json(['error'=>false,'samples'=>$filtered_samples,'latestSample'=>App\NPL_Ratio::max('idsample')]);
     }
     public function MorosidadTotalFechas(Request $request){
         $startDate = Date($request->input("startDate"));
@@ -119,7 +119,7 @@ class DashboardsController extends Controller {
             }
             $filtered_samples[$sampleid]->push($sample);
         }
-        return response()->json(['error'=>false,'samples'=>$filtered_samples]);
+        return response()->json(['error'=>false,'samples'=>$filtered_samples,'latestSample'=>App\Average_Money_Loaned::max('idsample')]);
     }
     public function CarteraPromedioFechas(Request $request){
         $startDate = Date($request->input("startDate"));
@@ -160,15 +160,16 @@ class DashboardsController extends Controller {
             }
             $filtered_samples[$sampleid]->push($sample);
         }
-        return response()->json(['error'=>false,'samples'=>$filtered_samples]);
+        return response()->json(['error'=>false,'samples'=>$filtered_samples,
+                                'latestSample'=>App\Average_Money_Borrowed::max('idsample')]);
     }
     public function DeudaPromedioFechas(Request $request){
         $startDate = Date($request->input("startDate"));
         $endDate = Date($request->input("endDate"));
         //Obtener los datos de las muestras
         $samples= App\Average_Money_Borrowed::whereBetween(DB::raw('average_money_borrowed.created_at'), [$startDate, $endDate])
-            ->leftJoin('stockholder','stockholder.id','=','average_money_borrowed.idstock')->
-            select('average_money_borrowed.*','stock.name')->get();
+            ->leftJoin('stockholder','stockholder.id','=','average_money_borrowed.idstockholder')->
+            select('average_money_borrowed.*','stockholder.name')->get();
         if($samples->isEmpty()){
             return response()->json(['error'=>true,'message'=>'No hay muestras de deuda promedio.']);
         }

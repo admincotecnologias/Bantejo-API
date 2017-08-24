@@ -207,8 +207,15 @@ class CreditsController extends Controller {
             return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],$this->OK);
         }
     }
-    public function addPay(Request $request){
-
+    public function addAnalysis(Request $request){
+        $validator = Validator::make($request->analysis, App\CreditAnalysis::$rules['create']);
+        if($validator->fails()){
+            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],$this->OK);
+        }else {
+            $analysis = App\CreditAnalysis::create($request->analysis);
+            $analysis->save();
+            return response()->json(['error'=>false,'message'=>'Analisis agregado correctamente','analisis',$analysis]);
+        }
     }
 
     public function deleteLastMove($idCredit){
