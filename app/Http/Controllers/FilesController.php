@@ -58,5 +58,15 @@ class FilesController extends BaseController {
            //'Access-Control-Allow-Origin' => '*']);
 		}
 	}
+	public function DeleteFile($id){
+	    $file = App\Files::where('id',$id)->first();
+	    if($file){
+	        $file->delete();
+            return response()->json(['error'=>false,'message'=>'Archivo eliminado']);
+        }else{
+            return response()->json(['error'=>true,'message'=>'Archivo'. $id .' no existe','file'=>$file]);
+        }
+
+    }
 
 }

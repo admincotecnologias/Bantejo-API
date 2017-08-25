@@ -15,14 +15,14 @@ class ClientBank extends Model {
     public static $rules = [
 	    'create'=>[
             'accounttype' => 'required|max:255',
-            'accountnumber' => 'required|max:11',
+            'accountnumber' => 'required|max:11|min:10',
             'clabe' => 'required|max:20',
             'idclient' => 'required|integer|exists:clients,id',
             'idbank' => 'required|integer|exists:banks,id',
         ],
         'update'=>[
             'accounttype' => 'max:255',
-            'accountnumber' => 'required|max:11',
+            'accountnumber' => 'required|max:11|min:10',
             'clabe' => 'required|max:18',
             'idclient' => 'integer|exists:clients,id',
             'idbank' => 'integer|exists:banks,id',
