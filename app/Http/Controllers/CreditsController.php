@@ -252,12 +252,26 @@ class CreditsController extends Controller {
         return $fileResponse;
     }
 
+    public function updateObservation(Request $request,$analysisid){
+        $validator = Validator::make($request->all(), App\CreditAnalysis::$rules['update']);
+        if(!$validator->fails()){
+            $analysis = App\CreditAnalysis::where('id',$analysisid)->first();
+            if(!$analysis){
+                return response()->json(['error'=>true,'message'=>'Analisis no existe']);
+            }
+            $analysis->observation = $request->input('observation');
+            $analysis->save();
+            return response()->json(['error'=>false,'message'=>'Observacion actualizada']);
+        }
+        return response()->json(['error'=>true,'message'=>'Observacion no valida']);
+    }
+
     public function getAnalysis($applicationid){
         $creditAnalysis = App\CreditAnalysis::where('applicationid',$applicationid)->get();
         if($creditAnalysis->isEmpty()){
             return response()->json(['error'=>true,'message'=>'No existe analisis']);
         }
-        $analysis=[];
+        $analysis=collect();
         $index = 0;
         //$analysis->push('error'=>'error');
         foreach($creditAnalysis as $ANL){
@@ -275,7 +289,7 @@ class CreditsController extends Controller {
             $derp['files']=$files;
             $derp['observacion']=$ANL->observation;
             $derp['analysisid']=$ANL->id;
-            $analysis[$index] = ($derp);
+            $analysis[$ANL->id]= ($derp);
             $index++;
         }
         return response()->json(['error'=>false,'analisis'=>$analysis]);

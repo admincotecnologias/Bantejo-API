@@ -15,6 +15,9 @@ class CreditAnalysis extends Model {
         'create'=>[
             'observation' => 'required|max:255',
             'applicationid' => 'required|exists:applications,id|nullable'
+        ],
+        'update'=>[
+            'observation' => 'required|max:255|string',
         ]
     ];
 
