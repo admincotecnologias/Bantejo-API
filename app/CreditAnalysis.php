@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class CreditAnalysis extends Model {
     use SoftDeletes;
     protected $table = 'creditanalysis';
-    protected $fillable = ['observation','applicationid'];
+    protected $fillable = ['observation','applicationid','start_date'];
 
     protected $dates = ['deleted_at',];
 
@@ -14,10 +14,12 @@ class CreditAnalysis extends Model {
         // Validation rules
         'create'=>[
             'observation' => 'required|max:255',
-            'applicationid' => 'required|exists:applications,id|nullable'
+            'applicationid' => 'required|exists:applications,id|nullable',
+            'start_date' => 'required|date'
         ],
         'update'=>[
             'observation' => 'required|max:255|string',
+            'start_date' => 'required|date',
         ]
     ];
 
