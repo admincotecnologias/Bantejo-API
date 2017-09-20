@@ -295,8 +295,17 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
 
         $app->post('add/FilesApplication', 'FilesController@add');
         $app->get('show/{id}/FilesApplication', 'FilesController@ReturnFile');
-
         $app->put('update/{idCredit}/ControlCredits/{idFile}','CreditsController@updateCreditFile');
+
+        $app->post('add/Analysis','CreditsController@addAnalysis');
+        $app->get('show/{creditId}/Analysis','CreditsController@getAnalysis');
+        $app->put('update/{analysisid}/Analysis','CreditsController@updateObservation');
+
+        $app->post('add/{analysisid}/AnalysisFiles','CreditsController@addAnalysisFile');
+        $app->delete('delete/{analysisid}/AnalysisFiles','CreditsController@removeAnalysisFile');
+
+
+
     });
 
 

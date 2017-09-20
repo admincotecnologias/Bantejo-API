@@ -53,10 +53,20 @@ class FilesController extends BaseController {
 		$files = App\Files::where('id',$id)->get();
 		if(!$files->isEmpty()){
 			$file = $files[0];
-			return response()->json(['filepath'=>basename($file->path),'name'=>$file->name,'content-type' => $file->mime]);
+			return response()->json(['filepath'=>basename($file->path),'name'=>$file->name,'content-type' => $file->mime,'id'=>$file->id]);
 			//return response()->download($file->path,$file->name,['content-type' => $file->mime,
            //'Access-Control-Allow-Origin' => '*']);
 		}
 	}
+	public function DeleteFile($id){
+	    $file = App\Files::where('id',$id)->first();
+	    if($file){
+	        $file->delete();
+            return response()->json(['error'=>false,'message'=>'Archivo eliminado']);
+        }else{
+            return response()->json(['error'=>true,'message'=>'Archivo'. $id .' no existe','file'=>$file]);
+        }
+
+    }
 
 }
