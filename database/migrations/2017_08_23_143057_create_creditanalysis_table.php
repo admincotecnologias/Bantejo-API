@@ -13,6 +13,7 @@ class CreateCreditanalysisTable extends Migration
                 $table->increments('id');
                 $table->integer('applicationid')->unsigned()->nullable();
                 $table->string('observation');
+                $table->date('start_date');
                 // Schema declaration
                 // Constraints declaration
                 $table->foreign('applicationid')->references('id')->on('applications')->onDelete('set null');

@@ -56,7 +56,7 @@ class UserController extends Controller
             $user->api_token = str_random(60);
             $user->last_connection = Carbon::now();
             $user->last_ip = str_random(15);
-            $user->save();            
+            $user->save();
             return response()->json(['error'=>false,'message'=>'usuario agregado correctamente.','id'=>$user->id]);
         }
     }
@@ -81,7 +81,6 @@ class UserController extends Controller
             $user->last_ip = str_random(15);
             $user->save();
             $id = $user->id;
-            $user->delete();
             return response()->json(['error'=>false,'message'=>'usuario cliente agregado correctamente.','id'=>$id],200);
         }
     }

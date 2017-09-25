@@ -53,7 +53,7 @@ class FilesController extends BaseController {
 		$files = App\Files::where('id',$id)->get();
 		if(!$files->isEmpty()){
 			$file = $files[0];
-			return response()->json(['filepath'=>basename($file->path),'name'=>$file->name,'content-type' => $file->mime]);
+			return response()->json(['filepath'=>basename($file->path),'name'=>$file->name,'content-type' => $file->mime,'id'=>$file->id]);
 			//return response()->download($file->path,$file->name,['content-type' => $file->mime,
            //'Access-Control-Allow-Origin' => '*']);
 		}

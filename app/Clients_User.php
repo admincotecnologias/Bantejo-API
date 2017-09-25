@@ -7,7 +7,7 @@ class Clients_User extends Model {
     use SoftDeletes;
 
     protected $table = "clients_user";
-    protected $fillable = ['name', 'email', 'password','api_token','last_ip','last_connection',];
+    protected $fillable = ['name', 'email', 'password','api_token','last_ip','last_connection','idclient'];
 
     protected $hidden = [
         'password',

@@ -208,14 +208,11 @@ class CreditsController extends Controller {
         }
     }
     public function addAnalysis(Request $request){
-        if(!$request->has('analisis')){
-            return response()->json(['error'=>true,'message'=>'Query mal formado'],$this->OK);
-        }
-        $validator = Validator::make($request->input('analisis'), App\CreditAnalysis::$rules['create']);
+        $validator = Validator::make($request->all(), App\CreditAnalysis::$rules['create']);
         if($validator->fails()){
             return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],$this->OK);
         }else {
-            $analysis = App\CreditAnalysis::create($request->input('analisis'));
+            $analysis = App\CreditAnalysis::create($request->all());
             $analysis->save();
             return response()->json(['error'=>false,'message'=>'Analisis agregado correctamente','analisisid'=>$analysis->id],$this->OK);
         }
@@ -260,6 +257,7 @@ class CreditsController extends Controller {
                 return response()->json(['error'=>true,'message'=>'Analisis no existe']);
             }
             $analysis->observation = $request->input('observation');
+            $analysis->start_date = $request->input('start_date');
             $analysis->save();
             return response()->json(['error'=>false,'message'=>'Observacion actualizada']);
         }
@@ -285,11 +283,12 @@ class CreditsController extends Controller {
                 Log::warning($fileResponse->getData()->filepath);
                 $currentFileIndex++;
             }
-            $derp = collect();
-            $derp['files']=$files;
-            $derp['observacion']=$ANL->observation;
-            $derp['analysisid']=$ANL->id;
-            $analysis[$ANL->id]= ($derp);
+            $analysis_entry = collect();
+            $analysis_entry['files']=$files;
+            $analysis_entry['observacion']=$ANL->observation;
+            $analysis_entry['analysisid']=$ANL->id;
+            $analysis_entry['start_date']=$ANL->start_date;
+            $analysis[$ANL->id]= ($analysis_entry);
             $index++;
         }
         return response()->json(['error'=>false,'analisis'=>$analysis]);
