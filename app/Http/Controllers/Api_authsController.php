@@ -231,7 +231,6 @@ class Api_authsController extends Controller {
         if(!$user->isEmpty()){
             $user = App\Clients_User::where('email',$data->email)->first();
             if(password_verify($data->password, $user->password)){
-				$client;
 				if($user->iduser){
 					$client = App\Client::where('id',$user->iduser)->first();
 				}
