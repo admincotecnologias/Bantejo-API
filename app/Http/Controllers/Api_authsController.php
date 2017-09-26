@@ -231,14 +231,18 @@ class Api_authsController extends Controller {
         if(!$user->isEmpty()){
             $user = App\Clients_User::where('email',$data->email)->first();
             if(password_verify($data->password, $user->password)){
-				if(!$user->iduser){
-					//return response()->json(['error'=>true,'message'=>'Cliente no registrado.']);
+				$client;
+				if($user->iduser){
+					$client = App\Client::where('id',$user->iduser)->first();
+				}
+				if(!$client){
+					return response()->json(['error'=>true,'message'=>'ERROR: Usuario esta vinculado con una cuenta inexistente.']);
 				}
                 $user->last_ip = $data->ip();
                 $user->api_token = str_random(60);
                 $user->last_connection = Carbon::now();
                 $user->save();
-                return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString()]);
+                return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'user'=>$user]);
             }
             else{
                 return response()->json(['error'=>true,'message'=>'Contraseña erronea.']);
