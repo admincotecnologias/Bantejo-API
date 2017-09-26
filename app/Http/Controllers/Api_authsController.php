@@ -36,7 +36,7 @@ class Api_authsController extends Controller {
 		}
 	}
 
-	protected function refreshAdminToken(Request $data){
+	public function refreshAdminToken(Request $data){
 		$response = this.checkAuth($data);
 		if($response['message']='token inexistente o no coincide'){
 			$response['code']=404;
@@ -44,7 +44,7 @@ class Api_authsController extends Controller {
 		return $response;
 	}
 
-	protected function refreshClientToken(Request $data){
+	public function refreshClientToken(Request $data){
 		$response = this.checkClientsAuth($data);
 		if($response['message']='token inexistente o no coincide'){
 			$response['code']=404;
