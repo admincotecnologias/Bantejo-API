@@ -81,7 +81,6 @@ class UserController extends Controller
             $user->last_ip = str_random(15);
             $user->save();
             $id = $user->id;
-            $user->delete();
             return response()->json(['error'=>false,'message'=>'usuario cliente agregado correctamente.','id'=>$id],200);
         }
     }
