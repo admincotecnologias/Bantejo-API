@@ -35,6 +35,40 @@ class Api_authsController extends Controller {
 			return response()->json(['error'=>true,'message'=>'token inexistente o no coincide','code'=>1]);
 		}
 	}
+
+	protected function refreshAdminToken(Request $data){
+		return this.checkAuth($data);
+	}
+
+	protected function refreshClientToken(Request $data){
+		return this.checkClientsAuth($data);
+	}
+
+	protected function checkClientsAuth(Request $data)
+	{
+		# code...
+		$token = $data->header('token');
+		$user = App\Clients_User::where('api_token',$token)->where('api_token','!=','')->get();
+		if(!$user->isEmpty()){
+			$user = App\Clients_User::where('api_token',$token)->first();
+			$lastCon = Carbon::parse($user->last_connection);
+			$now = Carbon::now();
+			if($user->last_ip != $data->ip()){
+				return response()->json(['error'=>true,'message'=>'ip no coincide','code'=>1]);
+			}
+			if($now->diffInDays($lastCon)>0){
+				return response()->json(['error'=>true,'message'=>'limite de conexion alcanzado','code'=>1]);
+			}
+			return response()->json(['error'=>false,'message'=>'ok','user'=>$user]);
+		}
+		else{
+			return response()->json(['error'=>true,'message'=>'token inexistente o no coincide','code'=>1]);
+		}
+	}
+
+
+
+
 	public function checkRole(Request $data)
 	{
 		# code...
@@ -93,16 +127,16 @@ class Api_authsController extends Controller {
     public function checkClientsRole(Request $data)
     {
         # code...
-        $auth = $this->checkAuth($data);
+        $auth = $this->checkClientsAuth($data);
         if(!$auth->getData()->error){
             $user = $auth->getData()->user;
             $path = $data->segments();
-            $page = App\Page::where('url',$path[1])->get();
-            if(!$page->isEmpty()) {
-
-
-            }
-            return response()->json(['error'=>true,'message'=>'no existe ruta.','code'=>2]);
+            if($path[0] != "Clients"){
+				return response()->json(['error'=>true,'message'=>'no existe ruta.','code'=>2]);
+			}else{
+				return response()->json(['error'=>false,'message'=>'rol ok']);
+			}
+            
         }
         else{
             if($auth->getData()->message != 'token inexistente o no coincide'){
@@ -189,11 +223,13 @@ class Api_authsController extends Controller {
         if(!$user->isEmpty()){
             $user = App\Clients_User::where('email',$data->email)->first();
             if(password_verify($data->password, $user->password)){
+				if(!$user->iduser){
+					return response()->json(['error'=>true,'message'=>'Cliente no registrado.']);
+				}
                 $user->last_ip = $data->ip();
                 $user->api_token = str_random(60);
                 $user->last_connection = Carbon::now();
                 $user->save();
-                $client = App\Clients_User::where('iduser',$user->id)->first();
                 return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString()]);
             }
             else{

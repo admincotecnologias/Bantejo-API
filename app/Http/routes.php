@@ -22,11 +22,13 @@ $app->post('Deletedis','UserController@add');
 $app->group(['prefix' => 'AdminAuth'], function() use ($app) {
     $app->post('LogIn', 'Api_authsController@AdminLogIn');
     $app->get('LogOut','Api_authsController@AdminLogOut');
+    $app->get('RefreshToken','Api_authsController@refreshAdminToken');
 });
 
 $app->group(['prefix' => 'ClientsAuth'], function() use ($app) {
     $app->post('LogIn', 'Api_authsController@ClientsLogIn');
     $app->get('LogOut','Api_authsController@ClientsLogOut');
+    $app->get('RefreshToken','Api_authsController@refreshClientToken');
 });
 
 
