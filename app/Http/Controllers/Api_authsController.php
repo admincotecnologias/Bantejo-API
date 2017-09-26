@@ -232,11 +232,7 @@ class Api_authsController extends Controller {
             $user = App\Clients_User::where('email',$data->email)->first();
             if(password_verify($data->password, $user->password)){
 				if(!$user->iduser){
-<<<<<<< HEAD
 					return response()->json(['error'=>true,'message'=>'Cliente no registrado.']);
-=======
-					//return response()->json(['error'=>true,'message'=>'Cliente no registrado.']);
->>>>>>> 1feef2fa84876ecb6e4257ce5fdf0c04770127ca
 				}
                 $user->last_ip = $data->ip();
                 $user->api_token = str_random(60);
