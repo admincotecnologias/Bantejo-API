@@ -1,6 +1,7 @@
 <?php 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse as JSONResponse;
 use App;
 use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
@@ -37,20 +38,38 @@ class Api_authsController extends Controller {
 	}
 
 	public function refreshAdminToken(Request $data){
-		$response = this.checkAuth($data);
-		if($response['message']='token inexistente o no coincide'){
-			$response['code']=404;
+		$response = $this->checkAuth($data);
+		$json = $response->getData( true);//Receive json response as an associative array
+		if($json['error']==false){
+			$user = App\User::where('email',$data->header('token'))->first();
+			$user->last_ip = $data->ip();
+			$user->api_token = str_random(60);
+			$user->last_connection = Carbon::now();
+			$user->save();
+			$response->setData(['message'=>'Token actualizado correctamente','error'=>true,'code'=>1,'user'=>$user]);
+		}else{
+			$response->setStatusCode(404); 
 		}
-		return $response;
+		
+		return $response();
+	}
+	public function refreshClientToken(Request $data){
+		$response = $this->checkClientsAuth($data);
+		$json = $response->getData( true);//Receive json response as an associative array
+		if($json['error']==false){
+			$user = App\Clients_User::where('email',$data->header('token'))->first();
+			$user->last_ip = $data->ip();
+			$user->api_token = str_random(60);
+			$user->last_connection = Carbon::now();
+			$user->save();
+			$response->setData(['message'=>'Token actualizado correctamente','error'=>true,'code'=>1,'user'=>$user]);
+		}else{
+			$response->setStatusCode(404); 
+		}
+		
+		return $response();
 	}
 
-	public function refreshClientToken(Request $data){
-		$response = this.checkClientsAuth($data);
-		if($response['message']='token inexistente o no coincide'){
-			$response['code']=404;
-		}
-		return $response;
-	}
 
 	protected function checkClientsAuth(Request $data)
 	{
@@ -231,8 +250,9 @@ class Api_authsController extends Controller {
         if(!$user->isEmpty()){
             $user = App\Clients_User::where('email',$data->email)->first();
             if(password_verify($data->password, $user->password)){
-				if($user->iduser){
-					$client = App\Client::where('id',$user->iduser)->first();
+				$client = null;
+				if($user->idclient){
+					$client = App\Client::where('id',$user->idclient)->first();
 				}
 				if(!$client){
 					return response()->json(['error'=>true,'message'=>'ERROR: Usuario esta vinculado con una cuenta inexistente.']);
@@ -241,7 +261,7 @@ class Api_authsController extends Controller {
                 $user->api_token = str_random(60);
                 $user->last_connection = Carbon::now();
                 $user->save();
-                return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'user'=>$user]);
+                return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'date'=>$user->last_connection->toDateString(),'user'=>$user]);
             }
             else{
                 return response()->json(['error'=>true,'message'=>'Contraseña erronea.']);

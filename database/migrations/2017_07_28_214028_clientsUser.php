@@ -23,6 +23,8 @@ class ClientsUser extends Migration
                 $table->string('api_token', 60)->unique();
                 $table->string('last_ip');
                 $table->date('last_connection');
+                $table->integer('idclient');
+                $table->foreign('idclient')->references('id')->on('clients')->onDelete('set null');
                 $table->rememberToken();
                 $table->timestamps();
                 $table->softDeletes();
