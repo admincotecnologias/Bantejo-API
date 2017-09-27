@@ -41,7 +41,7 @@ class Api_authsController extends Controller {
 		$response = $this->checkAuth($data);
 		$json = $response->getData( true);//Receive json response as an associative array
 		if($json['error']==false){
-			$user = App\User::where('email',$data->header('token'))->first();
+			$user = App\User::where('api_token',$data->header('token'))->first();
 			$user->last_ip = $data->ip();
 			$user->api_token = str_random(60);
 			$user->last_connection = Carbon::now();
@@ -51,13 +51,13 @@ class Api_authsController extends Controller {
 			$response->setStatusCode(404); 
 		}
 		
-		return $response();
+		return $response;
 	}
 	public function refreshClientToken(Request $data){
 		$response = $this->checkClientsAuth($data);
-		$json = $response->getData( true);//Receive json response as an associative array
+		$json = $response->getData(true);//Receive json response as an associative array
 		if($json['error']==false){
-			$user = App\Clients_User::where('email',$data->header('token'))->first();
+			$user = App\Clients_User::where('api_token',$data->header('token'))->first();
 			$user->last_ip = $data->ip();
 			$user->api_token = str_random(60);
 			$user->last_connection = Carbon::now();
@@ -67,7 +67,7 @@ class Api_authsController extends Controller {
 			$response->setStatusCode(404); 
 		}
 		
-		return $response();
+		return $response;
 	}
 
 
@@ -209,10 +209,17 @@ class Api_authsController extends Controller {
 				$user->api_token = str_random(60);
 				$user->last_connection = Carbon::now();
 				$user->save();
+				$employee=null;
+                $occupation=null;
+                $permissions=null;
 				$employee = App\Employee::where('iduser',$user->id)->first();
-				$occupation = App\Occupation::where('id',$employee->idoccupation)->first();
+				if($employee){
+                    $occupation = App\Occupation::where('id',$employee->idoccupation)->first();
+                }
+
 				$permissions = App\Permission::where('iduser',$user->id)->leftjoin('pages as pages','pages.id','=',"permissions.idpage")->get(["show","delete","edit","report","insert","pages.url"]);
-				return response()->json(['error'=>false,'message'=>'LogIn correcto.', 'permissions' => $permissions, 'id' => $employee->id,'token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation->name]);
+				return response()->json(['error'=>false,'message'=>'LogIn correcto.', 'permissions' => $permissions,
+                    'id' => $employee?$employee->id:-1,'token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation?$occupation->name:'']);
 			}
 			else{
 				return response()->json(['error'=>true,'message'=>'Contraseña erronea.']);
@@ -250,13 +257,15 @@ class Api_authsController extends Controller {
         if(!$user->isEmpty()){
             $user = App\Clients_User::where('email',$data->email)->first();
             if(password_verify($data->password, $user->password)){
+                /*
 				$client = null;
 				if($user->idclient){
 					$client = App\Client::where('id',$user->idclient)->first();
 				}
 				if(!$client){
-					return response()->json(['error'=>true,'message'=>'ERROR: Usuario esta vinculado con una cuenta inexistente.']);
+					return response()->json(['error'=>false,'message'=>'ERROR: Usuario esta vinculado con una cuenta inexistente.']);
 				}
+                */
                 $user->last_ip = $data->ip();
                 $user->api_token = str_random(60);
                 $user->last_connection = Carbon::now();
