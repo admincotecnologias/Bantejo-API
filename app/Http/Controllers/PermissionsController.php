@@ -93,7 +93,7 @@ class PermissionsController extends Controller {
             
                 if ( $request->has('insert') )
                 {
-                    $permission->insert = bcrypt($request->get('insert'));
+                    $permission->insert = app('hash')->make($request->get('insert'));
                 }
                 if ( $request->has('edit') )
                 {

@@ -17,11 +17,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        //$this->call('PagesTableSeeder');
-        //$this->call('OccupationsTableSeeder');
-        //$this->call('CreditsAvailableTableSeeder');
-        //$this->call('UsersTableSeeder');
-
         $PaC = new PaC();
         $request = new Request();
         $pages = ['Creditos','Solicitudes','Clientes','Fondeadores','Usuarios','Dashboard'];

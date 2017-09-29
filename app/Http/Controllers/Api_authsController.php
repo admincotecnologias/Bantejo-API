@@ -30,7 +30,7 @@ class Api_authsController extends Controller {
 			if($now->diffInDays($lastCon)>0){
 				return response()->json(['error'=>true,'message'=>'limite de conexion alcanzado','code'=>1]);
 			}
-			return response()->json(['error'=>false,'message'=>'ok','user'=>$user]);
+			return response()->json(['error'=>false,'message'=>'ok','user'=>$user,'code'=>0]);
 		}
 		else{
 			return response()->json(['error'=>true,'message'=>'token inexistente o no coincide','code'=>1]);
@@ -62,7 +62,7 @@ class Api_authsController extends Controller {
 			$user->api_token = str_random(60);
 			$user->last_connection = Carbon::now();
 			$user->save();
-			$response->setData(['message'=>'Token actualizado correctamente','error'=>true,'code'=>1,'user'=>$user]);
+			$response->setData(['message'=>'Token actualizado correctamente','error'=>false,'code'=>1,'user'=>$user]);
 		}else{
 			$response->setStatusCode(404); 
 		}
@@ -80,13 +80,10 @@ class Api_authsController extends Controller {
 			$user = App\Clients_User::where('api_token',$token)->first();
 			$lastCon = Carbon::parse($user->last_connection);
 			$now = Carbon::now();
-			if($user->last_ip != $data->ip()){
-				return response()->json(['error'=>true,'message'=>'ip no coincide','code'=>1]);
-			}
 			if($now->diffInDays($lastCon)>0){
 				return response()->json(['error'=>true,'message'=>'limite de conexion alcanzado','code'=>1]);
 			}
-			return response()->json(['error'=>false,'message'=>'ok','user'=>$user]);
+			return response()->json(['error'=>false,'message'=>'ok','user'=>$user,'code'=>0]);
 		}
 		else{
 			return response()->json(['error'=>true,'message'=>'token inexistente o no coincide','code'=>1]);
@@ -166,11 +163,8 @@ class Api_authsController extends Controller {
             
         }
         else{
-            if($auth->getData()->message != 'token inexistente o no coincide'){
-                return response()->json(['error'=>true,'message'=>$auth->getData()->message]);
-            }
             $this->ClientsLogout($data);
-            return response()->json(['error'=>true,'message'=>$auth->getData()->message]);
+            return response()->json(['error'=>true,'message'=>$auth->getData()->message,'code'=>1]);
         }
     }
 
@@ -219,7 +213,8 @@ class Api_authsController extends Controller {
 
 				$permissions = App\Permission::where('iduser',$user->id)->leftjoin('pages as pages','pages.id','=',"permissions.idpage")->get(["show","delete","edit","report","insert","pages.url"]);
 				return response()->json(['error'=>false,'message'=>'LogIn correcto.', 'permissions' => $permissions,
-                    'id' => $employee?$employee->id:-1,'token'=>$user->api_token,'nombre'=>$user->name,'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation?$occupation->name:'']);
+                    'id' => $employee?$employee->id:-1,'token'=>$user->api_token,'nombre'=>$user->name,
+                    'date'=>$user->last_connection->toDateString(),'puesto'=>$occupation?$occupation->name:'']);
 			}
 			else{
 				return response()->json(['error'=>true,'message'=>'Contraseña erronea.']);

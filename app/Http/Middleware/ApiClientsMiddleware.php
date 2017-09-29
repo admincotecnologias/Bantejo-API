@@ -26,7 +26,12 @@ class ApiClientsMiddleware
     {
         $error = $this->auth->checkClientsRole($request);
         if($error->getData()->error){
-            return response()->json($error->getData(),401);
+            if($error->getData()->code){
+                return response()->json($error->getData(),404);
+            }else{
+                return response()->json($error->getData(),401);
+            }
+
         }
         return $next($request);
     }

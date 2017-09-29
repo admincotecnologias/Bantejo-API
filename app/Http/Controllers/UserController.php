@@ -51,7 +51,8 @@ class UserController extends Controller
         else{  
             $user = new App\User;
             $user->name = $data['name'];
-            $user->password = bcrypt($data['password']);
+            app('hash')->make($data['password']);
+            $user->password = app('hash')->make($data['password']);
             $user->email = $data['email'];
             $user->api_token = str_random(60);
             $user->last_connection = Carbon::now();
@@ -74,7 +75,7 @@ class UserController extends Controller
         else{
             $user = new App\Clients_User;
             $user->name = $data['name'];
-            $user->password = bcrypt($data['password']);
+            $user->password =  app('hash')->make($data['password']);
             $user->email = $data['email'];
             $user->api_token = str_random(60);
             $user->last_connection = Carbon::now();
@@ -131,7 +132,7 @@ class UserController extends Controller
             
                 if ( $request->has('password') )
                 {
-                    $user->password = bcrypt($request->get('password'));
+                    $user->password =  app('hash')->make($request->get('password'));
                 }
                 if ( $request->has('email') )
                 {

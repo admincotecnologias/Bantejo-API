@@ -51,6 +51,9 @@ class CreditsController extends Controller {
      */
     public function showCreditApproved(Request $request, $id){
         $credit = App\approvedcredit::where('id',$id)->orWhere('extends', $id)->orderBy('start_date', 'asc')->get();
+        if($credit->isEmpty()){
+            return response()->json(['error'=>true,'message'=>'No hay creditos registrados']);
+        }
         $application = App\Application::where('id',$credit->toArray()[0]['application'])->first();
         $client = App\Client::where('id',$application->idclient)->first(['businessname','name','lastname']);
         $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->whereRaw('controlcredits.credit=credits_approved.id')->orderBy('controlcredits.id', 'DESC')->first();
@@ -60,11 +63,7 @@ class CreditsController extends Controller {
             $moves[(string)$data->id]=App\controlcredit::where('credit',$data->id)->get();
         }
         $name = $client->businessname == null ? $client->name." ".$client->lastname : $client->businessname;
-        if (!$credit->isEmpty()) {
-            return response()->json(['error'=>false,'applicationID'=>$application->id,'message'=>'ok','lastCondition'=>$lastCondition,'credits'=>$credit,'project'=>$application->projectname,'client'=>$name,'moves'=>$moves,'lastMove'=>$lastMove]);
-        }else {
-            return response()->json(['error' => true, 'message' => 'no hay creditos registradas.','credits' => null, 'project' => $application->projectname, 'client' => $name, 'moves' => null, 'lastMove' => null]);
-        }
+        return response()->json(['error'=>false,'applicationID'=>$application->id,'message'=>'ok','lastCondition'=>$lastCondition,'credits'=>$credit,'project'=>$application->projectname,'client'=>$name,'moves'=>$moves,'lastMove'=>$lastMove]);
     }
     public function showCreditApprovedByApplication(Request $request,$id){
         $credit = App\approvedcredit::where('application',$id)->where('extends',$id)->get();

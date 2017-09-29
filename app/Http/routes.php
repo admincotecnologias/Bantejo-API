@@ -18,7 +18,6 @@ use Carbon\Carbon;
 $app->get('Time',function(){
     return Carbon::now();
 });
-$app->post('Deletedis','UserController@add');
 $app->group(['prefix' => 'AdminAuth'], function() use ($app) {
     $app->post('LogIn', 'Api_authsController@AdminLogIn');
     $app->get('LogOut','Api_authsController@AdminLogOut');
