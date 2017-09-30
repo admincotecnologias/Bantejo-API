@@ -17,7 +17,7 @@ class Client extends Model {
             'lastname' => 'required|max:255|nullable',
             'type' => 'required|max:255',
             'employeenumber' => 'integer',
-            'rfc' => 'required|max:255',
+            'rfc' => 'required|max:255|unique:clients',
             'fiel' => 'max:255',
             'email' => 'required|max:255|email',
             'businesscategory' => 'required|max:255',
