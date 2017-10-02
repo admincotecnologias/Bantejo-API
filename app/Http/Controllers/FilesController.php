@@ -44,7 +44,6 @@ class FilesController extends BaseController {
 			$filedb->extension = $extension;
             $filedb->type = $data->input('type');
 			$filedb->save();
-			
 			return response()->json(['error'=>false,'message'=>'Archivo guardado.','file'=>$filedb]);
 		} 
         return response()->json(['error'=>true,'message'=>'Archivo Invalido.','file'=>null]);
