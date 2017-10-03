@@ -63,8 +63,16 @@ class ClientsController extends Controller {
         }
         else{  
             $client = App\Client::create($data->all());
-            $client->save();            
-            return response()->json(['error'=>false,'message'=>'cliente agregado correctamente.','client'=>$client]);
+            $client->save();
+            $user = null;
+            if($data['userId']){
+                $user = App\Clients_User::where('id',$data['userId'])->first();
+                if($user){
+                    $user->idclient = $client->id;
+                    $user->save();
+                }
+            }
+            return response()->json(['error'=>false,'message'=>'cliente agregado correctamente.','client'=>$client,'userId'=>$user?$user->id:null]);
         }
     }
     public function delete($id)
