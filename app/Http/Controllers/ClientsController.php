@@ -127,14 +127,14 @@ class ClientsController extends Controller {
                 {
                     return response()->json(['error'=>false,'applications'=>$applications,'credits'=>$credits,'client'=>$client]);
                 }
-                return response()->json(['error'=>false,'message'=>'no se encontraron creditos.','credits'=>null,
+                return response()->json(['error'=>false,'message'=>'no se encontraron creditos.','credits'=>[],
                     'applications'=>$applications,'client'=>$client]);
             }
-            return response()->json(['error'=>false,'message'=>'no se encontraron solicitudes.','credits'=>null,
-                'applications'=>null,'client'=>$client]);
+            return response()->json(['error'=>false,'message'=>'no se encontraron solicitudes.','credits'=>[],
+                'applications'=>[],'client'=>$client]);
         }
-        return response()->json(['error'=>true,'message'=>'no se encontro cliente.','credits'=>null,
-            'applications'=>null,'client'=>null]);
+        return response()->json(['error'=>true,'message'=>'no se encontro cliente.','credits'=>[],
+            'applications'=>[],'client'=>null]);
     }
     public function report($id)
     {
