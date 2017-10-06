@@ -19,6 +19,17 @@ class ClientBanksController extends Controller {
         }
         return response()->json(['error'=>true,'message'=>'no hay bancos registradas.','clientbanks'=>null]);
     } 
+
+    public function showByClient($id)
+    {
+        $clientbanks = ClientBank::where('idclient', $id)->get();
+        if(!$clientbanks->isEmpty())
+        {
+            return response()->json(['error'=>false,'message'=>'ok','clientbanks'=>$clientbanks]);
+        }
+        return response()->json(['error'=>true,'message'=>'no hay bancos registradas.','clientbanks'=>null]);
+    } 
+    
     public function show($id)
     {
         $clientbank = ClientBank::where('id',$id)->get();

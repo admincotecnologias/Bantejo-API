@@ -114,6 +114,7 @@ $app->group(['prefix' => 'Clients','middleware'=>'ClientsApi'], function() use (
         $app->get('all/BancosClientes', 'ClientBanksController@all');
         $app->post('add/BancosClientes','ClientBanksController@add');
         $app->get('show/{id}/BancosClientes', 'ClientBanksController@show');
+        $app->get('show/Client/{id}/BancosClientes', 'ClientBanksController@showByClient');        
         $app->put('update/{id}/BancosClientes', 'ClientBanksController@update');
         $app->delete('delete/{id}/BancosClientes', 'ClientBanksController@delete');
         $app->get('report/{id}/BancosClientes', 'ClientBanksController@report');
