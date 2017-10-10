@@ -91,17 +91,17 @@ class ClientBanksController extends Controller {
             
                 return response()->json(['error'=>false,'message'=>'banco editado correctamente.']);
             } catch (Exception $e) {
-                return response()->json(['error'=>false,'message'=>'banco no se pudo actualizar.','errors'=>$e->getMessage()]);
+                return response()->json(['error'=>true,'message'=>'banco no se pudo actualizar.','errors'=>$e->getMessage()]);
             }
         }   
         else{
-            return response()->json(['error'=>false,'message'=>'no se encontro banco.']);
+            return response()->json(['error'=>true,'message'=>'no se encontro banco.']);
         }      
     }
     public function report($id)
     {
         # code...        
-        return response()->json(['error'=>false,'message'=>'no se ha definido ningun reporte.']);
+        return response()->json(['error'=>true,'message'=>'no se ha definido ningun reporte.']);
     }
 
 }
