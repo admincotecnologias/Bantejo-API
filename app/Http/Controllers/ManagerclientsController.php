@@ -29,6 +29,20 @@ class ManagerclientsController extends Controller {
         }
         return response()->json(['error'=>true,'message'=>'no se encontro representante.','manager'=>null]);
     } 
+  
+    public function showByClient($id)
+    {
+        $manager = App\managerclient::where('idclient',$id)->get();
+        if(!$manager->isEmpty())
+        {
+            $manager = App\managerclient::where('idclient',$id)->get();
+            return response()->json(['error'=>false,'message'=>'ok','manager'=>$manager]);
+        }
+        return response()->json(['error'=>true,'message'=>'no se encontro representante.','manager'=>null]);
+    } 
+  
+  
+  
     public function add(Request $data)
     {       
         $validator = Validator::make($data->all(), [
