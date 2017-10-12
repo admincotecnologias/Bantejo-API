@@ -14,6 +14,7 @@ class CreateCreditaidsTable extends Migration
             $table->integer('idapplication')->unsigned()->nullable();
             $table->string('name')->nullable();
             $table->string('lastname')->nullable();
+            $table->string('businessname')->nullable();
             $table->string('rfc')->nullable();
             $table->string('curp')->nullable();
             $table->date('birthday')->nullable();
