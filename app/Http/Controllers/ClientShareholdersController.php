@@ -27,6 +27,19 @@ class ClientShareholdersController extends Controller {
         }
         return response()->json(['error'=>true,'message'=>'no se encontro aval.','clientshareholder'=>null]);
     } 
+
+    public function showByClient($id)
+    {
+        $clientshareholder = App\ClientShareholder::where('idclient',$id)->get();
+        if(!$clientshareholder->isEmpty())
+        {
+            $clientshareholder = App\ClientShareholder::where('idclient',$id)->get();
+            return response()->json(['error'=>false,'message'=>'ok','clientshareholder'=>$clientshareholder]);
+        }
+        return response()->json(['error'=>true,'message'=>'no se encontro aval.','clientshareholder'=>null]);
+    } 
+   
+
     public function add(Request $data)
     {       
         $validator = Validator::make($data->all(), App\ClientShareholder::$rules['create']);

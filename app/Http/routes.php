@@ -107,6 +107,7 @@ $app->group(['prefix' => 'Clients','middleware'=>'ClientsApi'], function() use (
         $app->get('all/AccionistasClientes', 'ClientShareholdersController@all');
         $app->post('add/AccionistasClientes','ClientShareholdersController@add');
         $app->get('show/{id}/AccionistasClientes', 'ClientShareholdersController@show');
+        $app->get('show/Client/{id}/AccionistasClientes', 'ClientShareholdersController@showByClient');        
         $app->put('update/{id}/AccionistasClientes', 'ClientShareholdersController@update');
         $app->delete('delete/{id}/AccionistasClientes', 'ClientShareholdersController@delete');
         $app->get('report/{id}/AccionistasClientes', 'ClientShareholdersController@report');
@@ -114,6 +115,7 @@ $app->group(['prefix' => 'Clients','middleware'=>'ClientsApi'], function() use (
         $app->get('all/BancosClientes', 'ClientBanksController@all');
         $app->post('add/BancosClientes','ClientBanksController@add');
         $app->get('show/{id}/BancosClientes', 'ClientBanksController@show');
+        $app->get('show/Client/{id}/BancosClientes', 'ClientBanksController@showByClient');        
         $app->put('update/{id}/BancosClientes', 'ClientBanksController@update');
         $app->delete('delete/{id}/BancosClientes', 'ClientBanksController@delete');
         $app->get('report/{id}/BancosClientes', 'ClientBanksController@report');
@@ -125,6 +127,7 @@ $app->group(['prefix' => 'Clients','middleware'=>'ClientsApi'], function() use (
         $app->get('all/Managers', 'ManagerclientsController@all');
         $app->post('add/Managers','ManagerclientsController@add');
         $app->get('show/{id}/Managers', 'ManagerclientsController@show');
+        $app->get('show/Client/{id}/Managers', 'ManagerclientsController@showByClient');        
         $app->delete('delete/{id}/Managers', 'ManagerclientsController@delete');
         $app->get('show/{id}/Wallet','ClientsController@getWallet');
         $app->get('all/Applications','ApplicationsController@all');

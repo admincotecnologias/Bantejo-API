@@ -89,13 +89,13 @@ class BanksController extends Controller {
             }
         }   
         else{
-            return response()->json(['error'=>false,'message'=>'no se encontro banco.']);
+            return response()->json(['error'=>true,'message'=>'no se encontro banco.']);
         }      
     }
     public function report($id)
     {
         # code...        
-        return response()->json(['error'=>false,'message'=>'no se ha definido ningun reporte.']);
+        return response()->json(['error'=>true,'message'=>'no se ha definido ningun reporte.']);
     }
 
 }
