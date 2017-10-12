@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Crypt;
 use Carbon\Carbon;
 use App\Creditaid;
 use Validator;
+use Illuminate\Validation\Rule as Rule;
 
 
 class CreditaidsController extends Controller {
@@ -78,8 +79,16 @@ class CreditaidsController extends Controller {
     }
     public function update(Request $data,$id)
     {
+        $updateRules = null;
         # code...
-        $validator = Validator::make($data->all(), App\Creditaid::$rules['fisica']['create']);
+        if($data->input('typeguarantee')=='Moral'){
+            $updateRules = App\Creditaid::$rules['moral']['update'];
+            $updateRules['rfc']='required|max:12|min:12|unique:creditaids,rfc,'.$id.'|unique:clients,rfc,'.$id;
+        }else{
+            $updateRules = App\Creditaid::$rules['fisica']['update'];
+            $updateRules['rfc']='required|max:13|min:13|unique:creditaids,rfc,'.$id.'|unique:clients,rfc,'.$id;
+        }
+        $validator = Validator::make($data->all(), $updateRules);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }

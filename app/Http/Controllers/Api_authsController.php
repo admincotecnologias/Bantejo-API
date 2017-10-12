@@ -256,7 +256,17 @@ class Api_authsController extends Controller {
                 $user->api_token = str_random(60);
                 $user->last_connection = Carbon::now();
                 $user->save();
-                return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'date'=>$user->last_connection->toDateString(),'user'=>$user]);
+                $clientType = null;
+                if($user->idclient!=null){
+                    $client = App\Client::where('id',$user->idclient)->firstOrFail();
+                    if($client->businessname!=null){
+                        $clientType = "moral";
+                    }else{
+                        $clientType = "physical";
+                    }
+
+                }
+                return response()->json(['error'=>false,'message'=>'LogIn correcto.','token'=>$user->api_token,'date'=>$user->last_connection->toDateString(),'user'=>$user,'clientType'=>$clientType]);
             }
             else{
                 return response()->json(['error'=>true,'message'=>'Contraseña erronea.']);

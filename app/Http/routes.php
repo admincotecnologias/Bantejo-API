@@ -50,7 +50,7 @@ $app->group(['prefix' => 'Clients','middleware'=>'ClientsApi'], function() use (
 
         $app->get('all/AvalCredito', 'CreditaidsController@all');
         $app->post('add/AvalCredito','CreditaidsController@add');
-        //$app->get('show/{id}/AvalCredito', 'CreditaidsController@show');
+        $app->get('show/{id}/AvalCredito', 'CreditaidsController@show');
         $app->put('update/{id}/AvalCredito', 'CreditaidsController@update');
         $app->delete('delete/{id}/AvalCredito', 'CreditaidsController@delete');
         $app->get('report/{id}/AvalCredito', 'CreditaidsController@report');
