@@ -63,8 +63,9 @@ class FilesClientsController extends Controller {
 		}
 	}
 	public function DeleteFile($id){
-	    $file = App\FileClient::where('id',$id)->delete();
-	    if($file>0){
+	    $file = App\FileClient::where('id',$id)->first();
+	    if($file){
+            $file->delete();
             return response()->json(['error'=>false,'message'=>'Archivo eliminado.']);
         }else{
             return response()->json(['error'=>true,'message'=>'Archivo no pudo ser eliminado.']);
