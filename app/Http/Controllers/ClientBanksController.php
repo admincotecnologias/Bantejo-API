@@ -51,9 +51,9 @@ class ClientBanksController extends Controller {
             $clientbank->save();
             if($clientbank->id>0) {
                 $clientbanks = App\ClientBank::where('idclient', $clientbank->id)->get();
-                return response()->json(['error' => false, 'message' => 'banco agregado correctamente.', 'accounts' => $clientbanks]);
+                return response()->json(['error' => false, 'message' => 'banco agregado correctamente.', 'accounts' => $clientbanks,'id'=>$clientbank->id]);
             }
-                return response()->json(['error'=>true,'message'=>'banco no se agrego correctamente.','accounts'=>null]);            }
+                return response()->json(['error'=>true,'message'=>'banco no se agrego correctamente.','accounts'=>null,'id'=>$clientbank->id]);            }
         }
     public function delete($id)
     {
