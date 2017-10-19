@@ -55,7 +55,7 @@ class FilesClientsController extends Controller {
 	}
 	public function ReturnFile($id,Request $request){
 		$file = App\FileClient::where('id',$id)->first();
-		if(!$file){
+		if($file){
 			return response()->json(['filepath'=>basename($file->path),'name'=>$file->name,'content-type' => $file->mime]);
 			//return response()->download($file->path,$file->name,['content-type' => $file->mime,
            //'Access-Control-Allow-Origin' => '*']);
