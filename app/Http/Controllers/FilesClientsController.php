@@ -54,9 +54,8 @@ class FilesClientsController extends Controller {
         return response()->json(['error'=>true,'message'=>'Archivo Invalido.','file'=>null]);
 	}
 	public function ReturnFile($id,Request $request){
-		$files = App\FileClient::where('idclient',$id)->get();
-		if(!$files->isEmpty()){
-			$file = $files[0];
+		$file = App\FileClient::where('id',$id)->first();
+		if(!$file){
 			return response()->json(['filepath'=>basename($file->path),'name'=>$file->name,'content-type' => $file->mime]);
 			//return response()->download($file->path,$file->name,['content-type' => $file->mime,
            //'Access-Control-Allow-Origin' => '*']);
