@@ -58,6 +58,7 @@ $app->group(['prefix' => 'Clients','middleware'=>'ClientsApi'], function() use (
         //$app->get('all/FilesApplication', 'FilesController@all');
         $app->post('add/FilesApplication','FilesController@add');
         $app->get('show/{id}/FilesApplication', 'FilesController@ReturnFile');
+        $app->delete('delete/{id}/FilesApplication', 'FilesController@DeleteFile');
 /*
         $app->get('/all/Credits', 'CreditsController@allCreditApproved');
         $app->get('show/{id}/Credits', 'CreditsController@showCreditApproved');
@@ -71,16 +72,7 @@ $app->group(['prefix' => 'Clients','middleware'=>'ClientsApi'], function() use (
     $app->group(['prefix' => 'Creditos'], function() use ($app) {
         $app->get('/all', 'CreditsController@allCreditApproved');
         $app->get('show/{id}', 'CreditsController@showCreditApproved');
-/*
-        $app->get('all/Solicitudes', 'ApplicationsController@all');
-        $app->get('all/Clients/Solicitudes', 'ApplicationsController@ClientsToCredit');
-        $app->post('add/Solicitudes','ApplicationsController@add');
-        $app->get('show/{id}/Solicitudes', 'ApplicationsController@show');
-        $app->put('update/{id}/Solicitudes', 'ApplicationsController@update');
-        $app->delete('delete/{id}/Solicitudes', 'ApplicationsController@delete');
-        $app->get('report/{id}/Solicitudes', 'ApplicationsController@report');
-*/
-
+        $app->get('show/{id}/Cliente','CreditsController@showCreditApprovedByClient');
         $app->post('add/FilesApplication', 'FilesController@add');
         $app->get('show/{id}/FilesApplication', 'FilesController@ReturnFile');
 

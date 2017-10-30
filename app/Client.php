@@ -19,7 +19,7 @@ class Client extends Model {
             'employeenumber' => 'integer',
             'rfc' => 'required|max:255|unique:clients',
             'fiel' => 'max:255',
-            'email' => 'required|max:255|email',
+            'email' => 'required|max:255|email|unique:clients|unique:clients_user',
             'businesscategory' => 'required|max:255',
             'constitutiondate' => 'required|date',
             'address' => 'required|max:255',
