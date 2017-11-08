@@ -170,7 +170,7 @@ class Api_authsController extends Controller {
                 $applicationid = null;
                 $allegedClientId = null;
                 if(count($path) < 4){
-                    return response()->json(['error'=>true,'message'=>'Ruta incompleta. Especifique un id.','code'=>2git s]);
+                    return response()->json(['error'=>true,'message'=>'Ruta incompleta. Especifique un id.','code'=>2]);
                 }
                 if($page == 'Clientes'){
                     $allegedClientId = $path[3];
