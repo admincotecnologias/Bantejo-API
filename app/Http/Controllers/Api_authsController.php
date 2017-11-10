@@ -198,7 +198,7 @@ class Api_authsController extends Controller {
                     }
                     $token = $data->header('token');
                     $actualClient = App\Clients_User::where('api_token', $token)->first();
-                    if ($actualClient == null || $actualClient->id != $allegedClientId) {
+                    if ($actualClient == null || $actualClient->idclient != $allegedClientId) {
                         return response()->json(['error' => true, 'message' => 'Cliente no corresponde.', 'actualClient'=>$actualClient->id, 'alleged'=>$allegedClientId,'code' => 2]);
                     }
                 }
