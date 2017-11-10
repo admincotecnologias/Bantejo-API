@@ -158,53 +158,10 @@ class Api_authsController extends Controller {
         if(!$auth->getData()->error){
             $user = $auth->getData()->user;
             $path = $data->segments();
-            if($path[0] != "Clients"){
-				return response()->json(['error'=>true,'message'=>'no existe ruta.','code'=>2]);
-			}else{
-                $page = App\Page::where('url',$path[1])->get();
-                $clientid = null;
-                $applicationid = null;
-                $allegedClientId = null;
-                $resource = $path[1];
-                $method = $path[2];
-                if( !($resource=='Clientes' && $method=='add' && count( $path) == 3)){
-                    //The user ID can be sent in two ways-- via url and via body.
-                    if($data['idclient']!=null){
-                        $allegedClientId = $data['idclient'];
-                    }else{
-                        //Must verify if the requested ID and the token sent correspond to the same user.
-                        //Not needed if the method adds, as there's not a client yet.
-                        if (count($path) < 4) {
-                            return response()->json(['error' => true, 'message' => 'Ruta incompleta. Especifique un id.', 'code' => 2]);
-                        }
-                        if ($page == 'Clientes') {
-                            $allegedClientId = $path[3];
-                        } else {
-                            if ($page == 'Creditos') {
-                                $credit = App\Creditaid::where('id', $path[3])->first();
-                                if ($credit) {
-                                    $applicationid = $credit->idapplication;
-                                }
-
-                            }
-                            if ($applicationid == null) {
-                                $applicationid = $path[3];
-                            }
-                            $application = App\Application::where('id', $applicationid)->first();
-                            if ($application) {
-                                $allegedClientId = $application->idclient;
-                            }
-                        }
-                    }
-                    $token = $data->header('token');
-                    $actualClient = App\Clients_User::where('api_token', $token)->first();
-                    if ($actualClient == null || $actualClient->idclient != $allegedClientId) {
-                        return response()->json(['error' => true, 'message' => 'Cliente no corresponde.', 'actualClient'=>$actualClient->id, 'alleged'=>$allegedClientId,'code' => 2]);
-                    }
-                }
-			}
+            if($path[0] != "Clients") {
+                return response()->json(['error' => true, 'message' => 'no existe ruta.', 'code' => 2]);
+            }
             return response()->json(['error'=>false,'message'=>'rol ok']);
-            
         }
         else{
             $this->ClientsLogout($data);
