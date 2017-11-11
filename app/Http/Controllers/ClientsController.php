@@ -56,8 +56,12 @@ class ClientsController extends Controller {
         return response()->json(['error'=>true,'message'=>'no se encontro cliente.','client'=>null]);
     } 
     public function add(Request $data)
-    {       
-        $validator = Validator::make($data->all(), App\Client::$rules['create']);
+    {
+        $messages = [
+            'unique' => 'El :attribute ya ha sido registrado',
+            'required' => ':atttribute : requerido'
+        ];
+        $validator = Validator::make($data->all(), App\Client::$rules['create'],$messages);
         if ($validator->fails()) {
             return response()->json(['error'=>true,'message'=>'error al validar campos.','errors'=>$validator->errors()->all()]);
         }
