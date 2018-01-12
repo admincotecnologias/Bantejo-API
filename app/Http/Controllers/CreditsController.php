@@ -7,7 +7,6 @@ use Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\FilesController;
-
 class CreditsController extends Controller {
 
     private $OK = 200;
@@ -138,6 +137,42 @@ class CreditsController extends Controller {
         }
         return response()->json(['error'=>true,'message'=>'no se encontro cliente.','credits'=>[]]);
     }
+
+    public function calculateEqualPay($id){
+        $credit = App\approvedcredit::where('id',$id)->find($id);
+        if($credit){
+            if ($credit->type==3) {
+
+                $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
+                $IVA = 1+$credit->iva/100; //IVA (1.16)
+                $n = $credit->term; //Numero de Meses
+                $PV = $credit->amount; //Monto del Credito
+                $r = ($TA*$IVA)/12; //Tasa de Interes
+                $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
+                $interest_balance = ($credit->amount*$TA)/12;
+                $interest_iva_balance = $interest_balance*($credit->iva/100);
+
+                return response()->json(['error'=>false,'message'=>'Pago mensual: '.$P,'balance interes'=>$interest_balance,'balance interes iva' => $interest_iva_balance]);
+            }else{
+                return response()->json(['error'=>true,'message'=>'Credito no es de pagos iguales']);
+            }
+        }else {
+            return response()->json(['error'=>true,'message'=>'Credito no existe']);
+        }
+    }
+    public function calculateNextPay(Request $credit,$id){
+        $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
+        $IVA = 1+$credit->iva/100; //IVA (1.16)
+        $n = $credit->term; //Numero de Meses
+        $PV = $credit->startingAmount; //Monto del Credito
+        $r = ($TA*$IVA)/12; //Tasa de Interes
+        $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
+        $interest_balance = ($credit->amount*$TA)/12;
+        $interest_iva_balance = $interest_balance*($credit->iva/100);
+        $finalAmount = $P - $interest_balance - $interest_iva_balance;
+
+        return response()->json(['amount'=> $credit->amount - $finalAmount,'term'=>$n,'iva'=>$credit->iva,'interest'=>$credit->interest,'startingAmount'=>$credit->startingAmount]);//'balance interes'=>$interest_balance,'balance interes iva' => $interest_iva_balance]);
+    }
     public function addCreditApproved(Request $request){
         $validator = Validator::make($request->all(), App\approvedcredit::$rules['create']);
         if($validator->fails()){
@@ -148,6 +183,8 @@ class CreditsController extends Controller {
             $id = $request['application'];
             $application = App\Application::where('id',$id)->find($id);
             $application->status = 'Autorizado';
+
+            //Cuando el credito es de tipo 1 (pago al final), se hace esto
             if($credit->id != null && $credit->extends==null && $credit->type==1){
                 $move = new App\controlcredit();
                 $move->credit = $credit->id;
@@ -161,6 +198,7 @@ class CreditsController extends Controller {
                 $move->typemove = "INICIAL";
                 $move->save();
             }
+            //Cuando el credito es de tipo 2 (revolvente), se hace esto
             if($credit->extends != null && $credit->type == 2){
                 $lastMove = App\controlcredit::where('credit',$credit->extends)->orderBy('id', 'DESC')->first();
                 if($lastMove){
@@ -209,6 +247,12 @@ class CreditsController extends Controller {
                     $move->save();
                 }
             }
+            //TODO: Implementar el caso cuando el credito sea de tipo 3 (Pagos iguales)
+            if($credit->id!=null && $credit->extends == null && $credit->type == 3){
+                $move = new App\controlcredit();
+                // $move->
+            }
+
             $application->save();
             return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id,'application'=>$application],$this->OK);
         }

@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
         $occupationId = $JSONResponse['id'];
         $CC = new CC();
 
-        $creditTypes = ["Pago al Final", "Revolvente"];
+        $creditTypes = ["Pago al Final", "Revolvente","Pagos Iguales"];
         foreach($creditTypes as $creditType){
             $request->replace(['name'=>$creditType]);
             $CC->addCreditType($request);

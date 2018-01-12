@@ -278,7 +278,6 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
         $app->put('update/{appId}/Liquidar','CreditsController@liquidate');
         $app->delete('credits/{id}', 'CreditsController@remove');
         $app->delete('delete/{appId}/LastMove','CreditsController@deleteLastMove');
-
         $app->get('all/Solicitudes', 'ApplicationsController@all');
         $app->get('all/Clients/Solicitudes', 'ApplicationsController@ClientsToCredit');
         $app->post('add/Solicitudes','ApplicationsController@add');
@@ -299,7 +298,9 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
 
         $app->post('add/{analysisid}/AnalysisFiles','CreditsController@addAnalysisFile');
         $app->delete('delete/{analysisid}/AnalysisFiles','CreditsController@removeAnalysisFile');
-
+        //TODO: Eliminar la funcion de prueba 'CalculateEqualPay'
+        $app->get('show/{id}/CalculateEqualPay','CreditsController@calculateEqualPay');
+        $app->put('update/{id}/CalculateNextPay','CreditsController@calculateNextPay');
 
 
     });
