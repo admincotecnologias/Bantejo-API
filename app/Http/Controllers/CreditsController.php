@@ -250,6 +250,9 @@ class CreditsController extends Controller {
             //TODO: Implementar el caso cuando el credito sea de tipo 3 (Pagos iguales)
             if($credit->id!=null && $credit->extends == null && $credit->type == 3){
                 $move = new App\controlcredit();
+                $move->credit = $credit->id;
+                $move->period = $credit->start_date;
+                $move->capital_balance = $credit->amount;
                 // $move->
             }
 
