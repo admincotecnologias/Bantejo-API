@@ -298,9 +298,6 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
 
         $app->post('add/{analysisid}/AnalysisFiles','CreditsController@addAnalysisFile');
         $app->delete('delete/{analysisid}/AnalysisFiles','CreditsController@removeAnalysisFile');
-        //TODO: Eliminar la funcion de prueba 'CalculateEqualPay'
-        $app->get('show/{id}/CalculateEqualPay','CreditsController@calculateEqualPay');
-        $app->put('update/{id}/CalculateNextPay','CreditsController@calculateNextPay');
 
 
     });
