@@ -14,7 +14,7 @@ class CreditsController extends Controller {
     private $NOT_FOUND = 404;
     private $SERVICE_NOT_AVAILABLE = 503;
 
-
+    private $INITIAL_MOVE = "INICIAL";
     public function addCreditType(Request $request){
 
         $validator = Validator::make($request->all(), App\creditavailable::$rules);
@@ -138,27 +138,18 @@ class CreditsController extends Controller {
         return response()->json(['error'=>true,'message'=>'no se encontro cliente.','credits'=>[]]);
     }
 
-    public function calculateEqualPay($id){
-        $credit = App\approvedcredit::where('id',$id)->find($id);
-        if($credit){
-            if ($credit->type==3) {
+    public function calculateEqualPay($credit){
 
-                $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
-                $IVA = 1+$credit->iva/100; //IVA (1.16)
-                $n = $credit->term; //Numero de Meses
-                $PV = $credit->amount; //Monto del Credito
-                $r = ($TA*$IVA)/12; //Tasa de Interes
-                $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
-                $interest_balance = ($credit->amount*$TA)/12;
-                $interest_iva_balance = $interest_balance*($credit->iva/100);
+        $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
+        $IVA = 1+$credit->iva/100; //IVA (1.16)
+        $n = $credit->term; //Numero de Meses
+        $PV = $credit->amount; //Monto del Credito
+        $r = ($TA*$IVA)/12; //Tasa de Interes
+        $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
+        $interest_balance = ($credit->amount*$TA)/12;
+        $interest_iva_balance = $interest_balance*($credit->iva/100);
+        return array('monthly_pay'=>$P,'interest_balance'=>$interest_balance,'interest_iva_balance' => $interest_iva_balance);
 
-                return response()->json(['error'=>false,'message'=>'Pago mensual: '.$P,'balance interes'=>$interest_balance,'balance interes iva' => $interest_iva_balance]);
-            }else{
-                return response()->json(['error'=>true,'message'=>'Credito no es de pagos iguales']);
-            }
-        }else {
-            return response()->json(['error'=>true,'message'=>'Credito no existe']);
-        }
     }
     public function calculateNextPay(Request $credit,$id){
         $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
@@ -184,6 +175,7 @@ class CreditsController extends Controller {
             $application = App\Application::where('id',$id)->find($id);
             $application->status = 'Autorizado';
 
+
             //Cuando el credito es de tipo 1 (pago al final), se hace esto
             if($credit->id != null && $credit->extends==null && $credit->type==1){
                 $move = new App\controlcredit();
@@ -196,7 +188,6 @@ class CreditsController extends Controller {
                 $move->interest_arrear_iva_balance = 0;
                 $move->currency = $credit->currency;
                 $move->typemove = "INICIAL";
-                $move->save();
             }
             //Cuando el credito es de tipo 2 (revolvente), se hace esto
             if($credit->extends != null && $credit->type == 2){
@@ -248,12 +239,21 @@ class CreditsController extends Controller {
                 }
             }
             //TODO: Implementar el caso cuando el credito sea de tipo 3 (Pagos iguales)
-            if($credit->id!=null && $credit->extends == null && $credit->type == 3){
+            if($credit->type == 3){
                 $move = new App\controlcredit();
                 $move->credit = $credit->id;
                 $move->period = $credit->start_date;
-                $move->capital_balance = $credit->amount;
-                // $move->
+                $equalPay = $this->calculateEqualPay($credit);
+                $move->interest_balance = $equalPay['interest_balance'];
+                $move->iva_balance = $equalPay['interest_iva_balance'];
+                $move->interest_arrear_balance = 0;
+                $move->interest_arrear_iva_balance = 0;
+                $move->capital_balance = $credit->amount - ($equalPay['monthly_pay']-$equalPay['interest_balance']-$equalPay['interest_iva_balance']);
+                $move->currency = $credit->currency;
+                $move->typemove = $this->INITIAL_MOVE;
+                $move->saveOrFail();
+                $application->save();
+                return response()->json(['error'=>false,'message'=>'oksss','credit'=>$credit->id,'application'=>$application],$this->OK);
             }
 
             $application->save();

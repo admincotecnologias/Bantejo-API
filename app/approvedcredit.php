@@ -40,6 +40,7 @@ class approvedcredit extends Model {
         $move = null;
         try{
             $move = controlcredit::where('credit',$this->id)->orderBy('id','DESC')->firstOrFail();
+            return $move->capital_balance;
         }catch (\Exception $ex){
             if($this->type==1){
                 return $this->amount;
@@ -47,7 +48,7 @@ class approvedcredit extends Model {
                 return 0;
             }
         }
-        return $move->capital_balance;
+
     }
     public function getInteresesAttribute(){
         try{
