@@ -138,32 +138,9 @@ class CreditsController extends Controller {
         return response()->json(['error'=>true,'message'=>'no se encontro cliente.','credits'=>[]]);
     }
 
-    public function calculateEqualPay($credit){
 
-        $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
-        $IVA = 1+$credit->iva/100; //IVA (1.16)
-        $n = $credit->term; //Numero de Meses
-        $PV = $credit->amount; //Monto del Credito
-        $r = ($TA*$IVA)/12; //Tasa de Interes
-        $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
-        $interest_balance = ($credit->amount*$TA)/12;
-        $interest_iva_balance = $interest_balance*($credit->iva/100);
-        return array('monthly_pay'=>$P,'interest_balance'=>$interest_balance,'interest_iva_balance' => $interest_iva_balance);
 
-    }
-    public function calculateNextPay(Request $credit,$id){
-        $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
-        $IVA = 1+$credit->iva/100; //IVA (1.16)
-        $n = $credit->term; //Numero de Meses
-        $PV = $credit->startingAmount; //Monto del Credito
-        $r = ($TA*$IVA)/12; //Tasa de Interes
-        $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
-        $interest_balance = ($credit->amount*$TA)/12;
-        $interest_iva_balance = $interest_balance*($credit->iva/100);
-        $finalAmount = $P - $interest_balance - $interest_iva_balance;
 
-        return response()->json(['amount'=> $credit->amount - $finalAmount,'term'=>$n,'iva'=>$credit->iva,'interest'=>$credit->interest,'startingAmount'=>$credit->startingAmount]);//'balance interes'=>$interest_balance,'balance interes iva' => $interest_iva_balance]);
-    }
     public function addCreditApproved(Request $request){
         $validator = Validator::make($request->all(), App\approvedcredit::$rules['create']);
         if($validator->fails()){
@@ -178,87 +155,181 @@ class CreditsController extends Controller {
 
             //Cuando el credito es de tipo 1 (pago al final), se hace esto
             if($credit->id != null && $credit->extends==null && $credit->type==1){
-                $move = new App\controlcredit();
-                $move->credit = $credit->id;
-                $move->period = $credit->start_date;
-                $move->capital_balance = $credit->amount;
-                $move->interest_balance = 0;
-                $move->iva_balance = 0;
-                $move->interest_arrear_balance = 0;
-                $move->interest_arrear_iva_balance = 0;
-                $move->currency = $credit->currency;
-                $move->typemove = "INICIAL";
+                $this->calculateFirstPayFinalMove($credit);
+
             }
             //Cuando el credito es de tipo 2 (revolvente), se hace esto
             if($credit->extends != null && $credit->type == 2){
-                $lastMove = App\controlcredit::where('credit',$credit->extends)->orderBy('id', 'DESC')->first();
-                if($lastMove){
-                    $startDate = Carbon::parse($credit->start_date);
-                    $finalDate = Carbon::parse($credit->start_date);
-                    $newDate = Carbon::parse($lastMove->period);
-                    $dateDif = $startDate->diffInDays($newDate);
-                    $move = new App\controlcredit();
-                    $move->credit = $credit->extends;
-                    $move->period = $credit->start_date;
-                    $move->capital_balance = floatval($lastMove->capital_balance);
-                    $move->interest_balance = floatval($lastMove->interest_balance) + (((floatval($credit->interest)/100/365)*floatval($move->capital_balance))*$dateDif);
-                    $move->iva_balance = ($move->interest_balance*($credit->iva/100));
-                    $move->interest = $move->interest_balance;
-                    $move->iva = $move->iva_balance;
-                    if($finalDate->addMonth(intval($credit->term))->timestamp <= $newDate->timestamp){
-                        $move->interest_arrear_balance = $lastMove->interest_arrear_balance + ((($credit->interest_arrear/100/365)*$dateDif)*($move->capital_balance+$move->interest_balance));
-                        $move->interest_arrear_iva_balance = $move->interest_arrear_balance*($credit->iva/100);
-                    }else{
-                        $move->interest_arrear_balance = 0;
-                        $move->interest_arrear_iva_balance = 0;
-                    }
-                    $move->capital_balance = floatval($credit->amount) + floatval($lastMove->capital_balance);
-                    $move->currency = $credit->currency;
-                    if($request->has("idref")){
-                        $move->idref = $request->input("idref");
-                    }
-                    $move->typemove = $request->typemove;
-                    $move->save();
-                }
-                else{
-                    $move = new App\controlcredit();
-                    $move->credit = $credit->extends;
-                    $move->period = $credit->start_date;
-                    $move->capital_balance = $credit->amount;
-                    $move->interest_balance = 0;
-                    $move->iva_balance = 0;
-                    $move->interest_arrear_balance = 0;
-                    $move->interest_arrear_iva_balance = 0;
-                    $move->currency = $credit->currency;
-                    if($request->has("idref")){
-                        $move->idref = $request->input("idref");
-                    }
-
-                    $move->typemove = $request->typemove;
-                    $move->save();
-                }
+                $this->calculateNextRevolvingMove($credit,$request);
             }
-            //TODO: Implementar el caso cuando el credito sea de tipo 3 (Pagos iguales)
+            //TODO: Implementar el caso cuando se inserta un credito que ya lleva mas de un mes activo
             if($credit->type == 3){
-                $move = new App\controlcredit();
-                $move->credit = $credit->id;
-                $move->period = $credit->start_date;
-                $equalPay = $this->calculateEqualPay($credit);
-                $move->interest_balance = $equalPay['interest_balance'];
-                $move->iva_balance = $equalPay['interest_iva_balance'];
-                $move->interest_arrear_balance = 0;
-                $move->interest_arrear_iva_balance = 0;
-                $move->capital_balance = $credit->amount - ($equalPay['monthly_pay']-$equalPay['interest_balance']-$equalPay['interest_iva_balance']);
-                $move->currency = $credit->currency;
-                $move->typemove = $this->INITIAL_MOVE;
-                $move->saveOrFail();
-                $application->save();
-                return response()->json(['error'=>false,'message'=>'oksss','credit'=>$credit->id,'application'=>$application],$this->OK);
+                $this->calculateEqualPays($credit);
             }
 
             $application->save();
             return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id,'application'=>$application],$this->OK);
         }
+    }
+    private function calculateNextRevolvingMove($credit,$request){
+        $lastMove = App\controlcredit::where('credit',$credit->extends)->orderBy('id', 'DESC')->first();
+        if($lastMove){
+            $startDate = Carbon::parse($credit->start_date);
+            $finalDate = Carbon::parse($credit->start_date);
+            $newDate = Carbon::parse($lastMove->period);
+            $dateDif = $startDate->diffInDays($newDate);
+            $move = new App\controlcredit();
+            $move->credit = $credit->extends;
+            $move->period = $credit->start_date;
+            $move->capital_balance = floatval($lastMove->capital_balance);
+            $move->interest_balance = floatval($lastMove->interest_balance) + (((floatval($credit->interest)/100/365)*floatval($move->capital_balance))*$dateDif);
+            $move->iva_balance = ($move->interest_balance*($credit->iva/100));
+            $move->interest = $move->interest_balance;
+            $move->iva = $move->iva_balance;
+            if($finalDate->addMonth(intval($credit->term))->timestamp <= $newDate->timestamp){
+                $move->interest_arrear_balance = $lastMove->interest_arrear_balance + ((($credit->interest_arrear/100/365)*$dateDif)*($move->capital_balance+$move->interest_balance));
+                $move->interest_arrear_iva_balance = $move->interest_arrear_balance*($credit->iva/100);
+            }else{
+                $move->interest_arrear_balance = 0;
+                $move->interest_arrear_iva_balance = 0;
+            }
+            $move->capital_balance = floatval($credit->amount) + floatval($lastMove->capital_balance);
+            $move->currency = $credit->currency;
+            if($request->has("idref")){
+                $move->idref = $request->input("idref");
+            }
+            $move->typemove = $request->typemove;
+            $move->save();
+        }
+        else{
+            $move = new App\controlcredit();
+            $move->credit = $credit->extends;
+            $move->period = $credit->start_date;
+            $move->capital_balance = $credit->amount;
+            $move->interest_balance = 0;
+            $move->iva_balance = 0;
+            $move->interest_arrear_balance = 0;
+            $move->interest_arrear_iva_balance = 0;
+            $move->currency = $credit->currency;
+            if($request->has("idref")){
+                $move->idref = $request->input("idref");
+            }
+
+            $move->typemove = $request->typemove;
+            $move->save();
+        }
+    }
+    private function calculateFirstPayFinalMove($credit){
+        $move = new App\controlcredit();
+        $move->credit = $credit->id;
+        $move->period = $credit->start_date;
+        $move->capital_balance = $credit->amount;
+        $move->interest_balance = 0;
+        $move->iva_balance = 0;
+        $move->interest_arrear_balance = 0;
+        $move->interest_arrear_iva_balance = 0;
+        $move->currency = $credit->currency;
+        $move->typemove = "INICIAL";
+    }
+    private function calculateEqualPays($credit){
+
+        // Calcular el pago mensual que se aplicara en cada uno de los meses de pago mensual
+        $equalPay = $this->calculateEqualPay($credit,$credit->amount,$credit->term);
+
+
+        //Guardar en la tabla de pagos mensuales el pago mensual vigente
+        $monthlyPay = App\EqualMonthlyPay::where('creditid',$credit->id)->first();
+        if(!$monthlyPay){
+            $monthlyPay = new App\EqualMonthlyPay();
+            $monthlyPay->creditid = $credit->id;
+            $monthlyPay->monthly_pay = $equalPay['monthly_pay'];
+            $monthlyPay->save();
+        }else{
+            $monthlyPay->monthly_pay = $equalPay['monthly_pay'];
+            $monthlyPay->save();
+        }
+
+
+        //Calcular el primer movimiento
+        $move = new App\controlcredit();
+        $move->credit = $credit->id;
+        $move->period = $credit->start_date;
+        $move->interest_balance = $equalPay['interest_balance'];
+        $move->iva_balance = $equalPay['interest_iva_balance'];
+        $move->interest_arrear_balance = 0;
+        $move->interest_arrear_iva_balance = 0;
+        $move->capital_balance = $credit->amount - ($equalPay['monthly_pay']-$equalPay['interest_balance']-$equalPay['interest_iva_balance']);
+        $move->currency = $credit->currency;
+        $move->typemove = $this->INITIAL_MOVE;
+        $move->saveOrFail();
+
+        $today = Carbon::now();
+        $start_date = Carbon::parse($credit->start_date);
+        $limit = $start_date->diffInMonths($today);
+        Log::warning($limit);
+        Log::warning($start_date);
+        Log::warning($credit->start_date);
+        $this->calculateMissingPays($credit,$move->capital_balance,$equalPay['interest_balance'],$equalPay['interest_iva_balance'],$move->term-1,$limit);
+    }
+    private function calculateEqualPay($credit,$amount,$months){
+
+        $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
+        $IVA = 1+$credit->iva/100; //IVA (1.16)
+        $n = $credit->term; //Numero de Meses
+        $PV = $amount; //Capital hasta ahora
+        $r = ($TA*$IVA)/12; //Tasa de Interes
+        $P = ($r*($PV)) /( 1-pow(1+$r,-$months) ); //Pago a hacer
+        $interest_balance = ($amount*$TA)/12;
+        $interest_iva_balance = $interest_balance*($credit->iva/100);
+        return array('monthly_pay'=>$P,'interest_balance'=>$interest_balance,'interest_iva_balance' => $interest_iva_balance);
+
+    }
+    public function calculateMissingPays($credit,$_amount,$_interest_balance,$_interest_iva_balance,$months,$limit){
+        if($months==0 || $limit == 0) return;
+        $amount = $_amount + $_interest_balance + $_interest_iva_balance;
+        $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
+        $IVA = 1+$credit->iva/100; //IVA (1.16)
+        $n = $months; //Numero de Meses
+        $PV = $amount; //Capital hasta ahora
+        $r = ($TA*$IVA)/12; //Tasa de Interes
+        $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
+        $interest_balance = ($amount*$TA)/12;
+        $interest_iva_balance = $interest_balance*($credit->iva/100);
+
+
+        //Crear nuevo movimiento
+
+        $newMove = new  App\controlcredit();
+        $newMove->credit = $credit->id;
+        $newMove->period = $credit->start_date;
+        $newMove->interest_balance =$interest_balance;
+        $newMove->iva_balance = $interest_iva_balance;
+        $newMove->interest_arrear_balance = 0;
+        $newMove->interest_arrear_iva_balance = 0;
+        $newMove->capital_balance = $amount;
+        $newMove->currency = $credit->currency;
+        $newMove->typemove = "DISPOSICION";
+        $newMove->saveOrFail();
+
+
+
+        if($limit-1 == 0 || $n-1 == 0){
+
+            //Guardar en la tabla de pagos mensuales el pago mensual vigente
+            $monthlyPay = App\EqualMonthlyPay::where('creditid',$credit->id)->first();
+            if(!$monthlyPay){
+                $monthlyPay = new App\EqualMonthlyPay();
+                $monthlyPay->creditid = $credit->id;
+                $monthlyPay->monthly_pay = $P;
+                $monthlyPay->save();
+            }else{
+                $monthlyPay->monthly_pay = $P;
+                $monthlyPay->save();
+            }
+        }else{
+            $this->calculateMissingPays($credit,$amount,$interest_balance,$interest_iva_balance,$n-1,$limit-1);
+        }
+
     }
     public function updateCreditFile($idCredit,$idFile){
         $controlFund = App\controlcredit::where('id',$idCredit)->get();
