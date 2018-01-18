@@ -58,7 +58,7 @@ class CreditsController extends Controller {
         $client = App\Client::where('id',$application->idclient)->first(['businessname','name','lastname']);
         $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->whereRaw('controlcredits.credit=credits_approved.id')->orderBy('controlcredits.id', 'DESC')->first();
         $lastCondition = App\approvedcredit::where('application',$application->id)->orderBy('id','desc')->first();
-        if($credit->type!=3){
+        if($credit[0]->type!=3){
             $lastMove = $this->calculatePayByEndOfMonth($lastCondition,$lastMove);
         }
         $moves = array();
