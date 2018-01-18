@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request as Request;
 use App;
 use Illuminate\Support\Facades\DB;
+use function PHPSTORM_META\type;
 use Validator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -57,12 +58,19 @@ class CreditsController extends Controller {
         $client = App\Client::where('id',$application->idclient)->first(['businessname','name','lastname']);
         $lastMove = App\controlcredit::select('controlcredits.*')->join('credits_approved','credits_approved.application','=',DB::raw("'".$application->id."'"))->whereRaw('controlcredits.credit=credits_approved.id')->orderBy('controlcredits.id', 'DESC')->first();
         $lastCondition = App\approvedcredit::where('application',$application->id)->orderBy('id','desc')->first();
-        $lastMove = $this->calculatePayByEndOfMonth($lastCondition,$lastMove);
+        if($credit->type!=3){
+            $lastMove = $this->calculatePayByEndOfMonth($lastCondition,$lastMove);
+        }
         $moves = array();
         foreach ($credit as $data){
             $moves[(string)$data->id]=App\controlcredit::where('credit',$data->id)->get();
         }
-        $name = $client->businessname == null ? $client->name." ".$client->lastname : $client->businessname;
+        $name = $client->businessname == null ? $client->name." ".$client->lastname : $client->businesssname;
+        //Si el credito es de pagos iguales, hay que obtener su pago mensual
+        if (count($credit) == 1 && $credit[0]->type == 3) {
+            $monthlyPay = App\EqualMonthlyPay::where('creditid',$credit[0]->id)->first();
+            return response()->json(['error'=>false,'applicationID'=>$application->id,'message'=>'ok','lastCondition'=>$lastCondition,'credits'=>$credit,'project'=>$application->projectname, 'monthlyPay'=>$monthlyPay->monthly_pay ,'client'=>$name,'moves'=>$moves,'lastMove'=>$lastMove]);
+        }
         return response()->json(['error'=>false,'applicationID'=>$application->id,'message'=>'ok','lastCondition'=>$lastCondition,'credits'=>$credit,'project'=>$application->projectname,'client'=>$name,'moves'=>$moves,'lastMove'=>$lastMove]);
     }
     public function showCreditApprovedByApplication(Request $request,$id)
@@ -75,9 +83,10 @@ class CreditsController extends Controller {
     }
     public function calculatePayByEndOfMonth($credit,$lastMove){
         $move = $lastMove;
-        $move->id = $credit->id;
-        $move->date = Carbon::now();
+
          if ($lastMove!= null) {
+             $move->id = $credit->id;
+             $move->date = Carbon::now();
             $lastMoveDate = Carbon::parse($lastMove->period);
             $finalDate = Carbon::parse($credit->start_date)->addMonth(intval($credit->term));
             $graceDate = Carbon::parse($credit->start_date)->addMonth(intval($credit->term))->addDays(
@@ -148,6 +157,8 @@ class CreditsController extends Controller {
         }else{
             $credit = App\approvedcredit::create($request->all());
             $credit->save();
+            Log::warning("TERM");
+            Log::warning($credit->term);
             $id = $request['application'];
             $application = App\Application::where('id',$id)->find($id);
             $application->status = 'Autorizado';
@@ -199,7 +210,7 @@ class CreditsController extends Controller {
                 $move->idref = $request->input("idref");
             }
             $move->typemove = $request->typemove;
-            $move->save();
+            $move->saveOrFail();
         }
         else{
             $move = new App\controlcredit();
@@ -216,7 +227,7 @@ class CreditsController extends Controller {
             }
 
             $move->typemove = $request->typemove;
-            $move->save();
+            $move->saveOrFail();
         }
     }
     private function calculateFirstPayFinalMove($credit){
@@ -230,6 +241,7 @@ class CreditsController extends Controller {
         $move->interest_arrear_iva_balance = 0;
         $move->currency = $credit->currency;
         $move->typemove = "INICIAL";
+        $move->save();
     }
     private function calculateEqualPays($credit){
 
@@ -254,22 +266,23 @@ class CreditsController extends Controller {
         $move = new App\controlcredit();
         $move->credit = $credit->id;
         $move->period = $credit->start_date;
-        $move->interest_balance = $equalPay['interest_balance'];
-        $move->iva_balance = $equalPay['interest_iva_balance'];
         $move->interest_arrear_balance = 0;
         $move->interest_arrear_iva_balance = 0;
-        $move->capital_balance = $credit->amount - ($equalPay['monthly_pay']-$equalPay['interest_balance']-$equalPay['interest_iva_balance']);
+        $move->capital_balance = $credit->amount - $equalPay['pay'];
+        $TA = $credit->interest/100;
+        //TODO: Arreglar como se calcula interes balance y iva balance; (talvez ya este con capital balance en vez de equalPay['pay']
+        $move->interest_balance = ($move->capital_balance*$TA)/12;
+        $move->iva_balance = $move->interest_balance*($credit->iva/100);
         $move->currency = $credit->currency;
-        $move->typemove = $this->INITIAL_MOVE;
+        $move->typemove = "DISPOSICION";
         $move->saveOrFail();
 
         $today = Carbon::now();
         $start_date = Carbon::parse($credit->start_date);
         $limit = $start_date->diffInMonths($today);
-        Log::warning($limit);
-        Log::warning($start_date);
-        Log::warning($credit->start_date);
-        $this->calculateMissingPays($credit,$move->capital_balance,$equalPay['interest_balance'],$equalPay['interest_iva_balance'],$move->term-1,$limit);
+        //Si hay almenos algun mes pendiente por calcular, calcularlo
+        if($limit != 0 && $credit->term-1 != 0)
+            $this->calculateMissingPays($credit,$move->capital_balance,$move->interest_balance,$move->iva_balance,$credit->term-1,$limit);
     }
     private function calculateEqualPay($credit,$amount,$months){
 
@@ -279,23 +292,33 @@ class CreditsController extends Controller {
         $PV = $amount; //Capital hasta ahora
         $r = ($TA*$IVA)/12; //Tasa de Interes
         $P = ($r*($PV)) /( 1-pow(1+$r,-$months) ); //Pago a hacer
-        $interest_balance = ($amount*$TA)/12;
+        $interest_balance = ($PV*$TA)/12;
         $interest_iva_balance = $interest_balance*($credit->iva/100);
-        return array('monthly_pay'=>$P,'interest_balance'=>$interest_balance,'interest_iva_balance' => $interest_iva_balance);
+        return array(
+            'monthly_pay'=>$P,
+            'pay'=>$P-$interest_balance-$interest_iva_balance
+        );
 
     }
     public function calculateMissingPays($credit,$_amount,$_interest_balance,$_interest_iva_balance,$months,$limit){
-        if($months==0 || $limit == 0) return;
-        $amount = $_amount + $_interest_balance + $_interest_iva_balance;
+
+        //TODO: Arreglar funcion recursiva.
+        $amount = $_amount + $_interest_balance + $_interest_iva_balance; //CAPITALIZA LOS INTERESES
         $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
         $IVA = 1+$credit->iva/100; //IVA (1.16)
         $n = $months; //Numero de Meses
         $PV = $amount; //Capital hasta ahora
         $r = ($TA*$IVA)/12; //Tasa de Interes
         $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
-        $interest_balance = ($amount*$TA)/12;
+
+        $pay = $P-$_interest_balance-$_interest_iva_balance; //Amortizacion capital
+        $interest_balance = ($pay*$TA)/12;
         $interest_iva_balance = $interest_balance*($credit->iva/100);
 
+        Log::warning($months);
+        Log::warning($PV);
+        Log::warning($P);
+        Log::warning($r);
 
         //Crear nuevo movimiento
 
@@ -326,6 +349,7 @@ class CreditsController extends Controller {
                 $monthlyPay->monthly_pay = $P;
                 $monthlyPay->save();
             }
+            return;
         }else{
             $this->calculateMissingPays($credit,$amount,$interest_balance,$interest_iva_balance,$n-1,$limit-1);
         }
@@ -362,7 +386,7 @@ class CreditsController extends Controller {
         }else{
             $credit = App\controlcredit::create($request->all());
             $credit->save();
-            if($credit->capital_balance < .01 && $credit->type == 1){
+            if($credit->capital_balance < .01 && $credit->type == 1 || $credit->type == 3){
                 $status = App\approvedcredit::where('id',$credit->credit)->first();
                 App\approvedcredit::where('application',$status->application)->update(['status' => 'LIQUIDADO' ]);
 

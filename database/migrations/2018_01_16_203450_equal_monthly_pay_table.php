@@ -16,7 +16,7 @@ class EqualMonthlyPayTable extends Migration
         Schema::create('equal_monthly_pay', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('creditid')->unsigned()->nullable();
-            $table->float('monthly_pay');
+            $table->double('monthly_pay');
             // Constraints declaration
             $table->foreign('creditid')->references('id')->on('credits_approved')->onDelete('set null');
             $table->timestamps();

@@ -15,11 +15,11 @@ class EqualMonthlyPay extends Model {
     public static $rules = [
         'create'=>[
             'creditid' => 'required|integer|exists:credits_approved,id',
-            'monthly_pay' => 'required|float',
+            'monthly_pay' => 'required|double',
         ],
         'update'=>[
             'creditid' => 'required|integer|exists:credits_approved,id',
-            'monthly_pay' => 'required|float',
+            'monthly_pay' => 'required|double',
         ]
     ];
 
