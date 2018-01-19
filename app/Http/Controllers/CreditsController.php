@@ -84,9 +84,9 @@ class CreditsController extends Controller {
     public function calculatePayByEndOfMonth($credit,$lastMove){
         $move = $lastMove;
 
-         if ($lastMove!= null) {
-             $move->id = $credit->id;
-             $move->date = Carbon::now();
+        if ($lastMove!= null) {
+            $move->id = $credit->id;
+            $move->date = Carbon::now();
             $lastMoveDate = Carbon::parse($lastMove->period);
             $finalDate = Carbon::parse($credit->start_date)->addMonth(intval($credit->term));
             $graceDate = Carbon::parse($credit->start_date)->addMonth(intval($credit->term))->addDays(
@@ -247,8 +247,6 @@ class CreditsController extends Controller {
 
         // Calcular el pago mensual que se aplicara en cada uno de los meses de pago mensual
         $equalPay = $this->calculateEqualPay($credit,$credit->amount,$credit->term);
-
-
         //Guardar en la tabla de pagos mensuales el pago mensual vigente
         $monthlyPay = App\EqualMonthlyPay::where('creditid',$credit->id)->first();
         if(!$monthlyPay){
@@ -261,17 +259,16 @@ class CreditsController extends Controller {
             $monthlyPay->save();
         }
 
-
+        Log::warning("Calculando movimiento inicial");
         //Calcular el primer movimiento
         $move = new App\controlcredit();
         $move->credit = $credit->id;
         $move->period = $credit->start_date;
         $move->interest_arrear_balance = 0;
         $move->interest_arrear_iva_balance = 0;
-        $move->capital_balance = $credit->amount - $equalPay['pay'];
+        $move->capital_balance = $credit->amount;
         $TA = $credit->interest/100;
-        //TODO: Arreglar como se calcula interes balance y iva balance; (talvez ya este con capital balance en vez de equalPay['pay']
-        $move->interest_balance = ($move->capital_balance*$TA)/12;
+        $move->interest_balance = ($credit->amount*$TA)/12;
         $move->iva_balance = $move->interest_balance*($credit->iva/100);
         $move->currency = $credit->currency;
         $move->typemove = "DISPOSICION";
@@ -279,10 +276,15 @@ class CreditsController extends Controller {
 
         $today = Carbon::now();
         $start_date = Carbon::parse($credit->start_date);
-        $limit = $start_date->diffInMonths($today);
+        Log::info($start_date);
+        Log::info($today);
+        $limit = $start_date->diffInMonths($today)-1;
         //Si hay almenos algun mes pendiente por calcular, calcularlo
+        Log::warning("A punto de calcular movimientos recursivamente");
+        Log::info("Diff in months: ".$limit);
+        $start_date = Carbon::parse($credit->start_date);
         if($limit != 0 && $credit->term-1 != 0)
-            $this->calculateMissingPays($credit,$move->capital_balance,$move->interest_balance,$move->iva_balance,$credit->term-1,$limit);
+            $this->calculateMissingPays($credit,$move->capital_balance,$move->interest_balance,$move->iva_balance,$credit->term-1,$limit,$start_date);
     }
     private function calculateEqualPay($credit,$amount,$months){
 
@@ -293,52 +295,40 @@ class CreditsController extends Controller {
         $r = ($TA*$IVA)/12; //Tasa de Interes
         $P = ($r*($PV)) /( 1-pow(1+$r,-$months) ); //Pago a hacer
         $interest_balance = ($PV*$TA)/12;
-        $interest_iva_balance = $interest_balance*($credit->iva/100);
+        $iva_balance = $interest_balance*($credit->iva/100);
         return array(
             'monthly_pay'=>$P,
-            'pay'=>$P-$interest_balance-$interest_iva_balance
+            'pay'=>$P-$interest_balance-$iva_balance
         );
 
     }
-    public function calculateMissingPays($credit,$_amount,$_interest_balance,$_interest_iva_balance,$months,$limit){
-
-        //TODO: Arreglar funcion recursiva.
-        $amount = $_amount + $_interest_balance + $_interest_iva_balance; //CAPITALIZA LOS INTERESES
+    public function calculateMissingPays($credit,$_amount,$_interest_balance,$_iva_balance,$months,$limit,$lastMoveDate){
+        $amount = $_amount + $_interest_balance + $_iva_balance; //CAPITALIZA LOS INTERESES
         $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
         $IVA = 1+$credit->iva/100; //IVA (1.16)
         $n = $months; //Numero de Meses
         $PV = $amount; //Capital hasta ahora
         $r = ($TA*$IVA)/12; //Tasa de Interes
         $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
-
-        $pay = $P-$_interest_balance-$_interest_iva_balance; //Amortizacion capital
-        $interest_balance = ($pay*$TA)/12;
-        $interest_iva_balance = $interest_balance*($credit->iva/100);
-
-        Log::warning($months);
-        Log::warning($PV);
-        Log::warning($P);
-        Log::warning($r);
+        $interest_balance = ($amount*$TA)/12;
+        $iva_balance = $interest_balance*($credit->iva/100);
 
         //Crear nuevo movimiento
 
         $newMove = new  App\controlcredit();
         $newMove->credit = $credit->id;
-        $newMove->period = $credit->start_date;
+        $newMove->period = Carbon::parse($lastMoveDate)->addMonth();
         $newMove->interest_balance =$interest_balance;
-        $newMove->iva_balance = $interest_iva_balance;
+        $newMove->iva_balance = $iva_balance;
         $newMove->interest_arrear_balance = 0;
         $newMove->interest_arrear_iva_balance = 0;
         $newMove->capital_balance = $amount;
         $newMove->currency = $credit->currency;
         $newMove->typemove = "DISPOSICION";
         $newMove->saveOrFail();
+        if($limit == 0 || $n-1 == 0){
 
-
-
-        if($limit-1 == 0 || $n-1 == 0){
-
-            //Guardar en la tabla de pagos mensuales el pago mensual vigente
+            // Guardar en la tabla de pagos mensuales el pago mensual vigente
             $monthlyPay = App\EqualMonthlyPay::where('creditid',$credit->id)->first();
             if(!$monthlyPay){
                 $monthlyPay = new App\EqualMonthlyPay();
@@ -351,7 +341,7 @@ class CreditsController extends Controller {
             }
             return;
         }else{
-            $this->calculateMissingPays($credit,$amount,$interest_balance,$interest_iva_balance,$n-1,$limit-1);
+            $this->calculateMissingPays($credit,$amount,$interest_balance,$iva_balance,$n-1,$limit-1,$newMove->period);
         }
 
     }
@@ -431,7 +421,7 @@ class CreditsController extends Controller {
         $fileResponse = $FC->DeleteFile($analysisFile->fileid);
         $data = $fileResponse->getData();
         if(!$data->error){
-           $analysisFile->delete();
+            $analysisFile->delete();
         }
         return $fileResponse;
     }
