@@ -248,44 +248,48 @@ class CreditsController extends Controller {
         // Calcular el pago mensual que se aplicara en cada uno de los meses de pago mensual
         $equalPay = $this->calculateEqualPay($credit,$credit->amount,$credit->term);
         //Guardar en la tabla de pagos mensuales el pago mensual vigente
-        $monthlyPay = App\EqualMonthlyPay::where('creditid',$credit->id)->first();
-        if(!$monthlyPay){
-            $monthlyPay = new App\EqualMonthlyPay();
-            $monthlyPay->creditid = $credit->id;
-            $monthlyPay->monthly_pay = $equalPay['monthly_pay'];
-            $monthlyPay->save();
-        }else{
-            $monthlyPay->monthly_pay = $equalPay['monthly_pay'];
-            $monthlyPay->save();
-        }
 
-        Log::warning("Calculando movimiento inicial");
-        //Calcular el primer movimiento
-        $move = new App\controlcredit();
-        $move->credit = $credit->id;
-        $move->period = $credit->start_date;
-        $move->interest_arrear_balance = 0;
-        $move->interest_arrear_iva_balance = 0;
-        $move->capital_balance = $credit->amount;
-        $TA = $credit->interest/100;
-        $move->interest_balance = ($credit->amount*$TA)/12;
-        $move->iva_balance = $move->interest_balance*($credit->iva/100);
-        $move->currency = $credit->currency;
-        $move->typemove = "DISPOSICION";
-        $move->saveOrFail();
+        $this->updateMonthlyPay($credit->id,$equalPay['monthly_pay']);
 
-        $today = Carbon::now();
         $start_date = Carbon::parse($credit->start_date);
-        Log::info($start_date);
-        Log::info($today);
+        $TA = $credit->interest/100;
+        $interest_balance =$credit->amount*$TA/12;
+        $iva_balance = $interest_balance*($credit->iva/100);
+        //Calcular el primer movimiento
+        $this->createNewEqualPayMove($credit,$credit->amount,$interest_balance,$iva_balance,$start_date);
+        $today = Carbon::now();
         $limit = $start_date->diffInMonths($today)-1;
         //Si hay almenos algun mes pendiente por calcular, calcularlo
-        Log::warning("A punto de calcular movimientos recursivamente");
-        Log::info("Diff in months: ".$limit);
-        $start_date = Carbon::parse($credit->start_date);
-        if($limit != 0 && $credit->term-1 != 0)
-            $this->calculateMissingPays($credit,$move->capital_balance,$move->interest_balance,$move->iva_balance,$credit->term-1,$limit,$start_date);
+        if($limit != 0 && $credit->term-1 != 0) {
+            $start_date->addMonth();
+            $this->calculateMissingPays($credit, $credit->amount, $interest_balance, $iva_balance, $credit->term - 1, $limit, $start_date);
+        }
     }
+    public function calculateMissingPays(App\approvedcredit $credit,$_amount,$_interest_balance,$_iva_balance,$months,$limit,Carbon $lastMoveDate){
+        //grace days = grace months
+        //Si un credito aun tiene meses de gracia, ignorar el mes actual, no calcular intereses
+        if($credit->grace_days > 0){
+            $credit->grace_days--;
+            $credit->save();
+            if($limit > 0 && $months-1 > 0){
+                $this->calculateMissingPays($credit,$_amount,$_interest_balance,$_iva_balance,$months-1,$limit-1,$lastMoveDate->addMonth());
+            }
+            return;
+        }
+        $amount = $_amount + $_interest_balance; //+ $_iva_balance; //CAPITALIZA LOS INTERESES
+        $equalPay = $this->calculateEqualPay($credit,$amount,$months);
+        //Crear nuevo movimiento
+        $this->createNewEqualPaymove($credit,$amount,$equalPay['interest_balance'],$equalPay['iva_balance'],$lastMoveDate);
+        if($limit == 0 || $months-1 == 0){
+            // Guardar en la tabla de pagos mensuales el pago mensual vigente
+            $this->updateMonthlyPay($credit->id,$equalPay['monthly_pay']);
+        }else{
+            // Seguir calculando pagos mensuales
+            $this->calculateMissingPays($credit,$amount,$equalPay['interest_balance'],$equalPay['iva_balance'],$months-1,$limit-1,$lastMoveDate->addMonth());
+        }
+
+    }
+
     private function calculateEqualPay($credit,$amount,$months){
 
         $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
@@ -298,27 +302,17 @@ class CreditsController extends Controller {
         $iva_balance = $interest_balance*($credit->iva/100);
         return array(
             'monthly_pay'=>$P,
-            'pay'=>$P-$interest_balance-$iva_balance
+            'pay'=>$P-$interest_balance-$iva_balance,
+            'interest_balance' => $interest_balance,
+            'iva_balance' => $iva_balance
         );
 
     }
-    public function calculateMissingPays($credit,$_amount,$_interest_balance,$_iva_balance,$months,$limit,$lastMoveDate){
-        $amount = $_amount + $_interest_balance + $_iva_balance; //CAPITALIZA LOS INTERESES
-        $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
-        $IVA = 1+$credit->iva/100; //IVA (1.16)
-        $n = $months; //Numero de Meses
-        $PV = $amount; //Capital hasta ahora
-        $r = ($TA*$IVA)/12; //Tasa de Interes
-        $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
-        $interest_balance = ($amount*$TA)/12;
-        $iva_balance = $interest_balance*($credit->iva/100);
-
-        //Crear nuevo movimiento
-
+    public function createNewEqualPayMove($credit,$amount,$interest_balance,$iva_balance,$period){
         $newMove = new  App\controlcredit();
         $newMove->credit = $credit->id;
-        $newMove->period = Carbon::parse($lastMoveDate)->addMonth();
-        $newMove->interest_balance =$interest_balance;
+        $newMove->period = $period;
+        $newMove->interest_balance = $interest_balance;
         $newMove->iva_balance = $iva_balance;
         $newMove->interest_arrear_balance = 0;
         $newMove->interest_arrear_iva_balance = 0;
@@ -326,24 +320,18 @@ class CreditsController extends Controller {
         $newMove->currency = $credit->currency;
         $newMove->typemove = "DISPOSICION";
         $newMove->saveOrFail();
-        if($limit == 0 || $n-1 == 0){
-
-            // Guardar en la tabla de pagos mensuales el pago mensual vigente
-            $monthlyPay = App\EqualMonthlyPay::where('creditid',$credit->id)->first();
-            if(!$monthlyPay){
-                $monthlyPay = new App\EqualMonthlyPay();
-                $monthlyPay->creditid = $credit->id;
-                $monthlyPay->monthly_pay = $P;
-                $monthlyPay->save();
-            }else{
-                $monthlyPay->monthly_pay = $P;
-                $monthlyPay->save();
-            }
-            return;
+    }
+    public function updateMonthlyPay($creditId,$pay){
+        $monthlyPay = App\EqualMonthlyPay::where('creditid',$creditId)->first();
+        if(!$monthlyPay){
+            $monthlyPay = new App\EqualMonthlyPay();
+            $monthlyPay->creditid = $creditId;
+            $monthlyPay->monthly_pay = $pay;
+            $monthlyPay->save();
         }else{
-            $this->calculateMissingPays($credit,$amount,$interest_balance,$iva_balance,$n-1,$limit-1,$newMove->period);
+            $monthlyPay->monthly_pay = $pay;
+            $monthlyPay->save();
         }
-
     }
     public function updateCreditFile($idCredit,$idFile){
         $controlFund = App\controlcredit::where('id',$idCredit)->get();
@@ -376,10 +364,14 @@ class CreditsController extends Controller {
         }else{
             $credit = App\controlcredit::create($request->all());
             $credit->save();
-            if($credit->capital_balance < .01 && $credit->type == 1 || $credit->type == 3){
-                $status = App\approvedcredit::where('id',$credit->credit)->first();
-                App\approvedcredit::where('application',$status->application)->update(['status' => 'LIQUIDADO' ]);
+            $approvedcredit = App\approvedcredit::where('id',$credit->credit)->first();
+            if($credit->capital_balance < 1 && ($approvedcredit->type==1|| $approvedcredit->type == 3)){
+                Log::info("Se esta liquidando");
+                $approvedcredit->status= 'LIQUIDADO';
+                $approvedcredit->save();
 
+            }else{
+                Log::info("No se esta liquidando");
             }
             return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],$this->OK);
         }

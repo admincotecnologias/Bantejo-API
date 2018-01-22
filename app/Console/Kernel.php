@@ -143,11 +143,26 @@ class Kernel extends ConsoleKernel
                 //Caso en el que el tipo sea de tipo pagos iguales. Hay que checar si ya paso un mes desde
                 //el ultimo movimiento
                 if($credit->type==3){
+                    $today = Carbon::now();
                     if($lastMove && $lastMove->typemove==$this->disposicionMove){
-                        Log::warning("Credito ".$credit->id."Esta atrasado");
-                        //Si entramos aqui, significa que el cliente no hizo su pago.
-                        $this->calculateMissingPay($credit,$lastMove);
+                        if($today->diffInMonths(Carbon::parse($lastMove->period)) >= 1) {
+                            Log::warning("Credito ".$credit->id."Esta atrasado");
+                            //Si entramos aqui, significa que el cliente no hizo su pago.
+                            if($credit->grace_days > 0){
+                                $credit->grace_days--;
+                                $credit->save();
+                                Log::info("Credito esta en periodo de gracia");
+                            }else{
+                                $this->calculateMissingPay($credit,$lastMove);
+                            }
+                        }else{
+                            Log::info("No han pasado mas de 30 dias desde que se verifico este credito.");
+                        }
+
+                    }else{
+                        Log::info("Credito esta a tiempo");
                     }
+
                 }
                 unset($lastMove);
                 unset($credit);
@@ -173,54 +188,70 @@ class Kernel extends ConsoleKernel
     }
 
     private function calculateMissingPay($credit,$lastMove){
-        $amount = $lastMove->capital_balance + $lastMove->interest_balance + $lastMove->_iva_balance;
+
+
+        $lastMoveDate = Carbon::parse($lastMove->period);
+        $amount = $lastMove->capital_balance + $lastMove->interest_balance; // + $lastMove->_iva_balance;
         $creditEndDate= Carbon::parse($credit->start_date)->addMonths($credit->term);
-        $monthsLeft = $creditEndDate->diffInMonths();
+        $monthsLeft = $creditEndDate->diffInMonths($lastMoveDate);
         Log::warning("Months left: ".$monthsLeft);
         Log::warning("end date: ");
         Log::warning($creditEndDate);
 
         if($monthsLeft==0){
+            Log::warning("Fecha de credito ya expiro");
             return;
         }
-        $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
-        $IVA = 1+$credit->iva/100; //IVA (1.16)
-        $n = $monthsLeft; //Numero de Meses
-        $PV = $amount; //Capital hasta ahora
-        $r = ($TA*$IVA)/12; //Tasa de Interes
-        $P = ($r*($PV)) /( 1-pow(1+$r,-$n) ); //Pago a hacer
-        $interest_balance = ($amount*$TA)/12;
-        $interest_iva_balance = $interest_balance*($credit->iva/100);
-
+        $equalPay = $this->calculateEqualPay($credit,$amount,$monthsLeft);
         Log::warning("Kernel detecto que cliente no pago.");
         Log::warning($monthsLeft);
-        Log::warning($PV);
-        Log::warning($P);
-        Log::warning($r);
-
         //Crear nuevo movimiento
+        $this->createNewEqualPayMove($credit,$amount,$equalPay['interest_balance'],$equalPay['iva_balance'],$lastMoveDate);
+        //Guardar en la tabla de pagos mensuales el pago mensual vigente
+        $this->updateMonthlyPay($credit->id,$equalPay['monthly_pay']);
+    }
 
+
+    private function calculateEqualPay($credit,$amount,$months){
+
+        $TA = $credit->interest/100; //Tasa Anual (Dividida sobre 100 para obtener su valor porcentual)
+        $IVA = 1+$credit->iva/100; //IVA (1.16)
+        $n = $credit->term; //Numero de Meses
+        $PV = $amount; //Capital hasta ahora
+        $r = ($TA*$IVA)/12; //Tasa de Interes
+        $P = ($r*($PV)) /( 1-pow(1+$r,-$months) ); //Pago a hacer
+        $interest_balance = ($PV*$TA)/12;
+        $iva_balance = $interest_balance*($credit->iva/100);
+        return array(
+            'monthly_pay'=>$P,
+            'pay'=>$P-$interest_balance-$iva_balance,
+            'interest_balance' => $interest_balance,
+            'iva_balance' => $iva_balance
+        );
+
+    }
+    private function createNewEqualPayMove($credit,$amount,$interest_balance,$iva_balance,$period){
         $newMove = new  App\controlcredit();
         $newMove->credit = $credit->id;
-        $newMove->period = $credit->start_date;
-        $newMove->interest_balance =$interest_balance;
-        $newMove->iva_balance = $interest_iva_balance;
+        $newMove->period = $period;
+        $newMove->interest_balance = $interest_balance;
+        $newMove->iva_balance = $iva_balance;
         $newMove->interest_arrear_balance = 0;
         $newMove->interest_arrear_iva_balance = 0;
         $newMove->capital_balance = $amount;
         $newMove->currency = $credit->currency;
         $newMove->typemove = "DISPOSICION";
         $newMove->saveOrFail();
-
-        //Guardar en la tabla de pagos mensuales el pago mensual vigente
-        $monthlyPay = App\EqualMonthlyPay::where('creditid',$credit->id)->first();
+    }
+    private function updateMonthlyPay($creditId,$pay){
+        $monthlyPay = App\EqualMonthlyPay::where('creditid',$creditId)->first();
         if(!$monthlyPay){
             $monthlyPay = new App\EqualMonthlyPay();
-            $monthlyPay->creditid = $credit->id;
-            $monthlyPay->monthly_pay = $P;
+            $monthlyPay->creditid = $creditId;
+            $monthlyPay->monthly_pay = $pay;
             $monthlyPay->save();
         }else{
-            $monthlyPay->monthly_pay = $P;
+            $monthlyPay->monthly_pay = $pay;
             $monthlyPay->save();
         }
     }
