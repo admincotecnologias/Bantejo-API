@@ -299,7 +299,7 @@ $app->group(['prefix' => 'Admin','middleware'=>'AdminApi'], function() use($app)
         $app->post('add/{analysisid}/AnalysisFiles','CreditsController@addAnalysisFile');
         $app->delete('delete/{analysisid}/AnalysisFiles','CreditsController@removeAnalysisFile');
 
-        $app->put('update/{id}/CalculateMissingPay','CreditsController@calculateMissingPay');
+        $app->put('update/{id}/Deposit','CreditsController@addEqualPayDeposit');
     });
 
 

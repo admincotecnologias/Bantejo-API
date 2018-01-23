@@ -143,22 +143,17 @@ class Kernel extends ConsoleKernel
                 //Caso en el que el tipo sea de tipo pagos iguales. Hay que checar si ya paso un mes desde
                 //el ultimo movimiento
                 if($credit->type==3){
-                    $today = Carbon::now();
-                    if($lastMove && $lastMove->typemove==$this->disposicionMove){
-                        if($today->diffInMonths(Carbon::parse($lastMove->period)) >= 1) {
-                            Log::warning("Credito ".$credit->id."Esta atrasado");
-                            //Si entramos aqui, significa que el cliente no hizo su pago.
-                            if($credit->grace_days > 0){
-                                $credit->grace_days--;
-                                $credit->save();
-                                Log::info("Credito esta en periodo de gracia");
-                            }else{
-                                $this->calculateMissingPay($credit,$lastMove);
-                            }
-                        }else{
-                            Log::info("No han pasado mas de 30 dias desde que se verifico este credito.");
-                        }
 
+                    if($this->payDue($credit,$lastMove)){
+                        Log::warning("Credito ".$credit->id."Esta atrasado");
+                        //Si entramos aqui, significa que el cliente no hizo su pago.
+                        if($credit->grace_days > 0){
+                            $credit->grace_days--;
+                            $credit->save();
+                            Log::info("Credito esta en periodo de gracia");
+                        }else{
+                            $this->calculateMissingPay($credit,$lastMove);
+                        }
                     }else{
                         Log::info("Credito esta a tiempo");
                     }
@@ -181,10 +176,18 @@ class Kernel extends ConsoleKernel
             //Fondeadores
             $total_money_borrowed = $this->calculateFundCredits($financial_margin);
             $this->getAverageMoneyBorrowed($total_money_borrowed);
-
-
-
         })->everyMinute();//->monthlyOn(1, '05:00');
+    }
+    private function payDue($credit,$lastMove){
+        $monthlyEqualPay = App\EqualMonthlyPay::where('creditid',$credit->id)->first();
+        $today = Carbon::now();
+        return(
+            $lastMove &&
+            (
+                $lastMove->typemove==$this->disposicionMove ||
+                $lastMove->typemove==$this->pagoMove && $lastMove->pay < $monthlyEqualPay->monthly_pay
+            ) &&
+            $today->diffInMonths(Carbon::parse($lastMove->period)) >= 1);
     }
 
     private function calculateMissingPay($credit,$lastMove){

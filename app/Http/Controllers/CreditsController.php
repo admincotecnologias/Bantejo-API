@@ -260,7 +260,7 @@ class CreditsController extends Controller {
         $today = Carbon::now();
         $limit = $start_date->diffInMonths($today)-1;
         //Si hay almenos algun mes pendiente por calcular, calcularlo
-        if($limit != 0 && $credit->term-1 != 0) {
+        if($limit > 0 && $credit->term-1 != 0) {
             $start_date->addMonth();
             $this->calculateMissingPays($credit, $credit->amount, $interest_balance, $iva_balance, $credit->term - 1, $limit, $start_date);
         }
@@ -280,7 +280,7 @@ class CreditsController extends Controller {
         $equalPay = $this->calculateEqualPay($credit,$amount,$months);
         //Crear nuevo movimiento
         $this->createNewEqualPaymove($credit,$amount,$equalPay['interest_balance'],$equalPay['iva_balance'],$lastMoveDate);
-        if($limit == 0 || $months-1 == 0){
+        if($limit <= 0 || $months-1 <= 0){
             // Guardar en la tabla de pagos mensuales el pago mensual vigente
             $this->updateMonthlyPay($credit->id,$equalPay['monthly_pay']);
         }else{
@@ -374,6 +374,68 @@ class CreditsController extends Controller {
                 Log::info("No se esta liquidando");
             }
             return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],$this->OK);
+        }
+    }
+
+    public function addEqualPayDeposit(Request $request){
+        $validator = Validator::make($request->all(), App\controlcredit::$rules['create']);
+        if($validator->fails()){
+            return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],$this->OK);
+        }else{
+            $approvedcredit = App\approvedcredit::where('id',$request->credit)->first();
+            if($approvedcredit->type !=3)
+                return response()->json(['error'=>true,'message'=>'Credito no corresponde',],$this->OK);
+            $totalPay = $request->pay;
+            $equalMonthlyPay = App\EqualMonthlyPay::where('creditid',$request->credit)->first();
+            $monthlyPay = $equalMonthlyPay->monthly_pay;
+
+            $moves = App\controlcredit::where('credit',$request->credit)->orderBy('period', 'asc')->get();
+            if(count($moves) > 0){
+                if($moves[0]->typemove == "DISPOSICION"){
+                    Log::info("Creando pago vacio");
+                    $newPay = App\controlcredit::create($request->all());
+                    $newPay->pay = 0;
+                    $newPay->typemove = "PAGO";
+                    $newPay->save();
+                }
+                $nextPay = true;
+                while($nextPay) {
+                    Log::info("Seguimos creando nuevos pagos");
+                    $updatedPay = 0;
+                    if ($totalPay + $moves[0]->pay > $monthlyPay) {
+                        Log::info("Pago excedente; Acotaremos y meteremos un nuevo pago");
+                        $updatedPay = $monthlyPay;
+                        $totalPay -= $equalMonthlyPay - $moves[0]->pay;
+                        // Guarda el nuevo movimiento
+                        $nextMove = App\controlcredit::create($request->all());
+                        $nextMove->typemove = "ABONO";
+                        $nextMove->save();
+                    } else {
+                        Log::info("Pago faltante; Meteremos lo que falta y ahi cortamos");
+                        $updatedPay = $moves[0]->pay + $totalPay;
+                        $nextPay = false;
+                    }
+                    Log::info("Actualizando el pago del movimiento");
+                    $moves[0]->pay = $updatedPay;
+                    $moves[0]->save();
+                }
+
+            }else{
+                response()->json(['error'=>true,'message'=>'No hay movimientos'],$this->OK);
+            }
+            /*
+            $credit = App\controlcredit::create($request->all());
+            $credit->save();
+            $approvedcredit = App\approvedcredit::where('id',$credit->credit)->first();
+            if($credit->capital_balance < 1 && ($approvedcredit->type==1|| $approvedcredit->type == 3)){
+                Log::info("Se esta liquidando");
+                $approvedcredit->status= 'LIQUIDADO';
+                $approvedcredit->save();
+
+            }else{
+                Log::info("No se esta liquidando");
+            }
+            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],$this->OK);*/
         }
     }
     public function addAnalysis(Request $request){
