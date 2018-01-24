@@ -383,59 +383,75 @@ class CreditsController extends Controller {
             return response()->json(['error'=>true,'message'=>'Error de Validaciones.','errors'=>$validator->errors()->all()],$this->OK);
         }else{
             $approvedcredit = App\approvedcredit::where('id',$request->credit)->first();
+            // Si el credito no es de tipo 3, no se pueden hacer este tipo de depositos
             if($approvedcredit->type !=3)
                 return response()->json(['error'=>true,'message'=>'Credito no corresponde',],$this->OK);
             $totalPay = $request->pay;
+            //obtener el pago mensual calculado anteriormente
             $equalMonthlyPay = App\EqualMonthlyPay::where('creditid',$request->credit)->first();
             $monthlyPay = $equalMonthlyPay->monthly_pay;
 
-            $moves = App\controlcredit::where('credit',$request->credit)->orderBy('period', 'asc')->get();
+            $moves = App\controlcredit::where('credit',$request->credit)->orderBy('period', 'desc')->get();
             if(count($moves) > 0){
+                $nextMove = null;
                 if($moves[0]->typemove == "DISPOSICION"){
                     Log::info("Creando pago vacio");
-                    $newPay = App\controlcredit::create($request->all());
-                    $newPay->pay = 0;
-                    $newPay->typemove = "PAGO";
-                    $newPay->save();
+                    $nextPay = App\controlcredit::create($request->all());
+                    $nextPay->pay = 0;
+                    $nextPay->typemove = "PAGO";
+                    $nextPay->save();
+                    $nextMove = $nextPay;
+                }else{
+                    $nextMove = $moves[0];
                 }
-                $nextPay = true;
-                while($nextPay) {
+                $moneyLeft = true;
+                while($moneyLeft) {
+                    Log::info($totalPay);
+                    $latestMove = $nextMove;
                     Log::info("Seguimos creando nuevos pagos");
                     $updatedPay = 0;
-                    if ($totalPay + $moves[0]->pay > $monthlyPay) {
+                    if ($totalPay + $latestMove->pay > $monthlyPay) {
                         Log::info("Pago excedente; Acotaremos y meteremos un nuevo pago");
                         $updatedPay = $monthlyPay;
-                        $totalPay -= $equalMonthlyPay - $moves[0]->pay;
+                        $totalPay -= $monthlyPay - $latestMove->pay;
                         // Guarda el nuevo movimiento
-                        $nextMove = App\controlcredit::create($request->all());
+                        $nextPay = App\controlcredit::create($request->all());
+                        $nextPay->interest_balance = 0;
+                        $nextPay->typemove = $nextMove->typemove;
+                        $nextPay->iva_balance = 0;
+                        $nextPay->pay = 0;
+                        $nextPay->period = $nextMove->period;
+                        $nextPay->capital_balance = $latestMove->capital_balance - $monthlyPay;
+                        if ($nextPay->capital_balance <= 0.1) {
+                            $nextPay->capital_balance = 0;
+                            $nextPay->pay = $nextPay->capital_balance;
+                            $moneyLeft = false;
+                            $approvedcredit->status = "LIQUIDADO";
+                            $approvedcredit->save();
+                        }
+                        $nextPay->save();
+                        $nextMove = $nextPay;
+                        $nextMove->period = Carbon::parse($nextMove->period)->addMonth();
                         $nextMove->typemove = "ABONO";
-                        $nextMove->save();
+                        //Agregar un mes de gracia al credito si se abono extra
+                        if ($nextMove->typemove == "ABONO")
+                            $approvedcredit->grace_days += 1;
+                        $approvedcredit->save();
                     } else {
                         Log::info("Pago faltante; Meteremos lo que falta y ahi cortamos");
-                        $updatedPay = $moves[0]->pay + $totalPay;
-                        $nextPay = false;
+                        $latestMove->period = Carbon::parse($latestMove->period)->addMonth();
+                        $updatedPay = $latestMove->pay + $totalPay;
+                        $moneyLeft = false;
                     }
                     Log::info("Actualizando el pago del movimiento");
-                    $moves[0]->pay = $updatedPay;
-                    $moves[0]->save();
+                    $latestMove->pay = $updatedPay;
+                    $latestMove->save();
                 }
+                return response()->json(['error'=>false,'message'=>'OK']);
 
             }else{
                 response()->json(['error'=>true,'message'=>'No hay movimientos'],$this->OK);
             }
-            /*
-            $credit = App\controlcredit::create($request->all());
-            $credit->save();
-            $approvedcredit = App\approvedcredit::where('id',$credit->credit)->first();
-            if($credit->capital_balance < 1 && ($approvedcredit->type==1|| $approvedcredit->type == 3)){
-                Log::info("Se esta liquidando");
-                $approvedcredit->status= 'LIQUIDADO';
-                $approvedcredit->save();
-
-            }else{
-                Log::info("No se esta liquidando");
-            }
-            return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],$this->OK);*/
         }
     }
     public function addAnalysis(Request $request){
