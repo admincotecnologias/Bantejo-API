@@ -364,15 +364,7 @@ class CreditsController extends Controller {
         }
 
     }
-
-    /*****************************************************************************************************************
-     *********************************************** HELPER FUNCTIONS *************************************************
-     *****************************************************************************************************************/
-
-
-
-
-    private function liquidate($idApp){
+    public function liquidate($idApp){
         $numCreditos =  App\approvedcredit::where('application', $idApp)->update(['status'=>'LIQUIDADO']);
         if($numCreditos > 0){
             return response()->json(['error'=>false,'message'=>'Credito liquidado','derp'=>$numCreditos],$this->OK);
@@ -381,6 +373,15 @@ class CreditsController extends Controller {
         }
 
     }
+
+    /*****************************************************************************************************************
+     *********************************************** HELPER FUNCTIONS ************************************************
+     *****************************************************************************************************************/
+
+
+
+
+
     private function calculatePayByEndOfMonth($credit,$lastMove){
         $move = $lastMove;
 
