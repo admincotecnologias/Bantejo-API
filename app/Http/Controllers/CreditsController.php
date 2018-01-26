@@ -81,7 +81,6 @@ class CreditsController extends Controller {
         }
         return response()->json(['error' => true, 'message' => 'no hay creditos registradas.', 'credits' => null]);
     }
-
     public function showCreditApprovedByClient(Request $request,$id){
         $client = App\Client::where('id',$id)->get();
         if(!$client->isEmpty())
@@ -102,10 +101,6 @@ class CreditsController extends Controller {
         }
         return response()->json(['error'=>true,'message'=>'no se encontro cliente.','credits'=>[]]);
     }
-
-
-
-
     public function addCreditApproved(Request $request){
         $validator = Validator::make($request->all(), App\approvedcredit::$rules['create']);
         if($validator->fails()){
@@ -138,7 +133,6 @@ class CreditsController extends Controller {
             return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id,'application'=>$application],$this->OK);
         }
     }
-
     public function updateCreditFile($idCredit,$idFile){
         $controlFund = App\controlcredit::where('id',$idCredit)->get();
         //$controlFund->fileid = $idFile;
@@ -163,9 +157,9 @@ class CreditsController extends Controller {
             $credit->save();
             $approvedcredit = App\approvedcredit::where('id',$credit->credit)->first();
             if($credit->capital_balance < 1 && ($approvedcredit->type==1|| $approvedcredit->type == 3)){
-                Log::info("Se esta liquidando");
                 $approvedcredit->status= 'LIQUIDADO';
                 $approvedcredit->save();
+                Log::info("Se esta liquidando");
 
             }else{
                 Log::info("No se esta liquidando");
@@ -173,7 +167,6 @@ class CreditsController extends Controller {
             return response()->json(['error'=>false,'message'=>'ok','credit'=>$credit->id],$this->OK);
         }
     }
-
     public function addEqualPayDeposit(Request $request){
         $validator = Validator::make($request->all(), App\controlcredit::$rules['create']);
         if($validator->fails()){
@@ -194,6 +187,9 @@ class CreditsController extends Controller {
                 if($moves[0]->typemove == "DISPOSICION"){
                     Log::info("Creando pago vacio");
                     $nextPay = App\controlcredit::create($request->all());
+
+                    $nextPay->interest_balance = 0;
+                    $nextPay->iva_balance = 0;
                     $nextPay->pay = 0;
                     $nextPay->typemove = "PAGO";
                     $nextPay->save();
@@ -207,13 +203,23 @@ class CreditsController extends Controller {
                     $latestMove = $nextMove;
                     Log::info("Seguimos creando nuevos pagos");
                     $updatedPay = 0;
+                    $updatedInterest = 0;
+                    $updatedIva = 0;
                     if ($totalPay + $latestMove->pay > $monthlyPay) {
                         Log::info("Pago excedente; Acotaremos y meteremos un nuevo pago");
                         $updatedPay = $monthlyPay;
+                        $updatedInterest = $latestMove->interest_balance;
+                        $updatedIva = $latestMove->iva_balance;
+                        //TODO: Calcular estos valores usando la ultima disposicion
+                        if($latestMove->typemove == 'PAGO'){
+                            $updatedInterest+=$request->interest_balance;
+                            $updatedIva+=$request->iva_balance;
+                        }
                         $totalPay -= $monthlyPay - $latestMove->pay;
                         // Guarda el nuevo movimiento
                         $nextPay = App\controlcredit::create($request->all());
                         $nextPay->interest_balance = 0;
+
                         $nextPay->typemove = $nextMove->typemove;
                         $nextPay->iva_balance = 0;
                         $nextPay->pay = 0;
@@ -236,12 +242,20 @@ class CreditsController extends Controller {
                         $approvedcredit->save();
                     } else {
                         Log::info("Pago faltante; Meteremos lo que falta y ahi cortamos");
-                        $latestMove->period = Carbon::parse($latestMove->period)->addMonth();
                         $updatedPay = $latestMove->pay + $totalPay;
+                        $updatedInterest = $latestMove->interest_balance;
+                        $updatedIva = $latestMove->iva_balance;
+                        //TODO: Calcular estos valores usando la ultima disposicion
+                        if($latestMove->typemove == 'PAGO'){
+                            $updatedInterest+=$request->interest_balance;
+                            $updatedIva+=$request->iva_balance;
+                        }
                         $moneyLeft = false;
                     }
-                    Log::info("Actualizando el pago del movimiento");
+                    //Actualizando las variables de pago, iva y balance con los valores calculados arriba
                     $latestMove->pay = $updatedPay;
+                    $latestMove->interest_balance = $updatedInterest;
+                    $latestMove->iva_balance = $updatedIva;
                     $latestMove->save();
                 }
                 return response()->json(['error'=>false,'message'=>'OK']);
@@ -292,7 +306,6 @@ class CreditsController extends Controller {
         }
         return $fileResponse;
     }
-
     public function updateObservation(Request $request,$analysisid){
         $validator = Validator::make($request->all(), App\CreditAnalysis::$rules['update']);
         if(!$validator->fails()){
@@ -307,7 +320,6 @@ class CreditsController extends Controller {
         }
         return response()->json(['error'=>true,'message'=>'Observacion no valida']);
     }
-
     public function getAnalysis($applicationid){
         $creditAnalysis = App\CreditAnalysis::where('applicationid',$applicationid)->get();
         if($creditAnalysis->isEmpty()){
@@ -377,10 +389,6 @@ class CreditsController extends Controller {
     /*****************************************************************************************************************
      *********************************************** HELPER FUNCTIONS ************************************************
      *****************************************************************************************************************/
-
-
-
-
 
     private function calculatePayByEndOfMonth($credit,$lastMove){
         $move = $lastMove;
