@@ -192,9 +192,22 @@ class Kernel extends ConsoleKernel
 
     private function calculateMissingPay($credit,$lastMove){
 
-
+        //Obtener la ultima disposicion
+        $lastDisp = App\controlcredit::where('credit', $credit->id)->where('typemove','DISPOSICION')->orderBy('period', 'DESC')->firstOrFail();
+        //Obtener el pago mensual
+        $equalMonthlyPay = App\EqualMonthlyPay::where('creditid',$credit->id)->firstOrFail();
+        $scheduledPayThisMonth = $equalMonthlyPay->monthly_pay;
+        $totalPayThisMonth = $lastMove->pay;
+        if($lastMove->typemove=='PAGO'){
+            $totalPayThisMonth += $lastMove->interest_balance + $lastMove->iva_balance;
+        }
+        //Obtener la tasa de interes, es decir, el porcentaje por el cual multiplicaremos el balance de interes
+        $interest_rate = (1-($totalPayThisMonth/$scheduledPayThisMonth));
         $lastMoveDate = Carbon::parse($lastMove->period);
-        $amount = $lastMove->capital_balance + $lastMove->interest_balance; // + $lastMove->_iva_balance;
+        $lastMoveDate->addMonth();
+        Log::info("Tasa de interes: ".$interest_rate);
+        //Capitalizar los intereses (Sumar la parte del balance de interes que no se ha pagado)
+        $amount = $lastMove->capital_balance + $lastDisp->interest_balance*$interest_rate; // + $lastMove->_iva_balance;
         $creditEndDate= Carbon::parse($credit->start_date)->addMonths($credit->term);
         $monthsLeft = $creditEndDate->diffInMonths($lastMoveDate);
         Log::warning("Months left: ".$monthsLeft);
@@ -209,6 +222,7 @@ class Kernel extends ConsoleKernel
         Log::warning("Kernel detecto que cliente no pago.");
         Log::warning($monthsLeft);
         //Crear nuevo movimiento
+        Log::info($credit);
         $this->createNewEqualPayMove($credit,$amount,$equalPay['interest_balance'],$equalPay['iva_balance'],$lastMoveDate);
         //Guardar en la tabla de pagos mensuales el pago mensual vigente
         $this->updateMonthlyPay($credit->id,$equalPay['monthly_pay']);
@@ -244,7 +258,9 @@ class Kernel extends ConsoleKernel
         $newMove->capital_balance = $amount;
         $newMove->currency = $credit->currency;
         $newMove->typemove = "DISPOSICION";
+        Log::info("before fail");
         $newMove->saveOrFail();
+        Log::info("after fail");
     }
     private function updateMonthlyPay($creditId,$pay){
         $monthlyPay = App\EqualMonthlyPay::where('creditid',$creditId)->first();
